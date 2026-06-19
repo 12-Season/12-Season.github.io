@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conference Papers — LIT @ KAIST</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="journal.html">Journal</a>
+        <a href="conferences.html" class="active">Conferences</a>
+        <a href="patents.html">Patents</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head">
+      <h1>Conference Papers</h1>
+      <div class="count"><span id="count">불러오는 중…</span></div>
+    </div>
+    <div class="toolbar">
+      <input id="search" class="search" type="search"
+             placeholder="제목 · 저자 · 학술대회 · 연도 검색…" autocomplete="off" />
+    </div>
+    <div id="list"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">© <span id="yr"></span> LIT Laboratory, KAIST.</div>
+  </footer>
+
+  <script src="assets/js/pubs.js"></script>
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+    Pubs.init({
+      csv: "data/conference.csv",
+      type: "conference",
+      mount: "list",
+      count: "count",
+      search: "search",
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LIT @ KAIST</title>
+  <meta name="description" content="LIT 연구실 출판물 — 학술지, 학술대회, 특허" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
+      <nav class="nav">
+        <a href="index.html" class="active">Home</a>
+        <a href="journal.html">Journal</a>
+        <a href="conferences.html">Conferences</a>
+        <a href="patents.html">Patents</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- ▼▼▼ 연구실 소개 문구는 자유롭게 수정하세요 (기존 사이트 인증서 만료로 자동 수집 불가) ▼▼▼ -->
+    <section class="hero">
+      <h1>LIT Laboratory</h1>
+      <p class="lead">
+        KAIST LIT 연구실의 출판물 아카이브입니다. 학술지 논문, 국제·국내 학술대회 논문,
+        특허 정보를 연도별로 확인할 수 있습니다.
+      </p>
+    </section>
+    <!-- ▲▲▲ 연구실 소개 문구 끝 ▲▲▲ -->
+
+    <section class="cards">
+      <a class="card" href="journal.html">
+        <div class="c-count" id="count-journal">—</div>
+        <h3>Journal Papers</h3>
+        <div class="c-desc">학술지 논문</div>
+      </a>
+      <a class="card" href="conferences.html">
+        <div class="c-count" id="count-conference">—</div>
+        <h3>Conference Papers</h3>
+        <div class="c-desc">학술대회 논문</div>
+      </a>
+      <a class="card" href="patents.html">
+        <div class="c-count" id="count-patent">—</div>
+        <h3>Patents</h3>
+        <div class="c-desc">특허</div>
+      </a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">© <span id="yr"></span> LIT Laboratory, KAIST.</div>
+  </footer>
+
+  <script src="assets/js/pubs.js"></script>
+  <script>
+    // populate the year and the per-category counts on the landing cards
+    document.getElementById("yr").textContent = new Date().getFullYear();
+    [
+      ["data/journal.csv", "count-journal"],
+      ["data/conference.csv", "count-conference"],
+      ["data/patent.csv", "count-patent"],
+    ].forEach(function (pair) {
+      fetch(pair[0])
+        .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
+        .then(function (t) {
+          var n = Pubs._rowsToObjects(Pubs._parseCSV(t))
+            .filter(function (x) { return (x.title || "").trim(); }).length;
+          document.getElementById(pair[1]).textContent = n;
+        })
+        .catch(function () { document.getElementById(pair[1]).textContent = "?"; });
+    });
+  </script>
+</body>
+</html>
