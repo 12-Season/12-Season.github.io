@@ -51,6 +51,24 @@ a:hover { text-decoration: underline; }
 .nav a:hover { background: var(--soft); text-decoration: none; }
 .nav a.active { background: var(--accent); color: #fff; }
 
+/* nav dropdown (Journal/Conferences/Patents → International / Domestic) */
+.dropdown { position: relative; }
+.dropdown > .drop-toggle::after { content: " ▾"; font-size: .8em; color: var(--muted); }
+.dropdown > .drop-toggle.active::after { color: #fff; }
+.dropdown-menu {
+  position: absolute; left: 0; top: 100%; min-width: 168px;
+  background: #fff; border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.10); padding: 6px; margin-top: 4px;
+  display: none; z-index: 30;
+}
+.dropdown:hover .dropdown-menu,
+.dropdown:focus-within .dropdown-menu { display: block; }
+.dropdown-menu a {
+  display: block; padding: 8px 12px; border-radius: 6px; color: var(--fg);
+  font-size: .92rem; white-space: nowrap;
+}
+.dropdown-menu a:hover { background: var(--soft); text-decoration: none; }
+
 /* ---------- hero (landing) ---------- */
 .hero { padding: 56px 0 32px; }
 .hero h1 { font-size: 2.2rem; margin: 0 0 .35em; line-height: 1.2; }
@@ -67,6 +85,8 @@ a:hover { text-decoration: underline; }
 .card h3 { margin: 0 0 .25em; color: var(--fg); font-size: 1.2rem; }
 .card .c-count { color: var(--accent); font-weight: 700; font-size: 1.6rem; }
 .card .c-desc { color: var(--muted); font-size: .92rem; margin-top: 4px; }
+.card .c-break { color: var(--muted); font-size: .8rem; margin-top: 8px;
+  padding-top: 8px; border-top: 1px dashed var(--line); }
 
 /* ---------- list pages ---------- */
 .page-head { padding: 36px 0 8px; }
@@ -79,6 +99,21 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--line); border-radius: 8px; background: var(--soft);
 }
 .search:focus { outline: none; border-color: var(--accent); background: #fff; }
+
+/* International / Domestic tabs on category pages */
+.tabs {
+  display: flex; gap: 6px; margin: 16px 0 0; border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.tab {
+  font: inherit; background: none; border: none; cursor: pointer;
+  padding: 10px 16px; color: var(--muted); border-bottom: 2px solid transparent;
+  margin-bottom: -1px; border-radius: 6px 6px 0 0;
+}
+.tab:hover { color: var(--fg); background: var(--soft); }
+.tab.active { color: var(--accent-dark); border-bottom-color: var(--accent); font-weight: 700; }
+.tab-count { font-size: .8rem; color: var(--muted); font-weight: 400; }
+.tab.active .tab-count { color: var(--accent); }
 
 .year-group { margin: 8px 0 28px; }
 .year {

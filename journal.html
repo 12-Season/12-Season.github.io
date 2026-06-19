@@ -12,9 +12,27 @@
       <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
       <nav class="nav">
         <a href="index.html">Home</a>
-        <a href="journal.html" class="active">Journal</a>
-        <a href="conferences.html">Conferences</a>
-        <a href="patents.html">Patents</a>
+        <div class="dropdown">
+          <a href="journal.html" class="drop-toggle active">Journal</a>
+          <div class="dropdown-menu">
+            <a href="journal.html#international">International</a>
+            <a href="journal.html#domestic">Domestic</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <a href="conferences.html" class="drop-toggle">Conferences</a>
+          <div class="dropdown-menu">
+            <a href="conferences.html#international">International</a>
+            <a href="conferences.html#domestic">Domestic</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <a href="patents.html" class="drop-toggle">Patents</a>
+          <div class="dropdown-menu">
+            <a href="patents.html#international">International</a>
+            <a href="patents.html#domestic">Domestic</a>
+          </div>
+        </div>
       </nav>
     </div>
   </header>
@@ -24,6 +42,7 @@
       <h1>Journal Papers</h1>
       <div class="count"><span id="count">불러오는 중…</span></div>
     </div>
+    <div id="tabs" class="tabs"></div>
     <div class="toolbar">
       <input id="search" class="search" type="search"
              placeholder="제목 · 저자 · 학술지 · 연도 검색…" autocomplete="off" />
@@ -38,12 +57,17 @@
   <script src="assets/js/pubs.js"></script>
   <script>
     document.getElementById("yr").textContent = new Date().getFullYear();
-    Pubs.init({
-      csv: "data/journal.csv",
+    Pubs.initCategory({
       type: "journal",
       mount: "list",
       count: "count",
       search: "search",
+      tabsEl: "tabs",
+      sources: [
+        { key: "international", label: "International", csv: "data/journal_international.csv" },
+        { key: "domestic", label: "Domestic", csv: "data/journal_domestic.csv" },
+      ],
+      default: "international",
     });
   </script>
 </body>

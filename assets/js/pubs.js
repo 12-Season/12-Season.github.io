@@ -1,9 +1,10 @@
 /* =========================================================================
  * pubs.js — LIT publications renderer
  *
- * Loads a WordPress-exported publications CSV (journal / conference / patent),
- * normalizes the messy fields, and renders entries grouped by year with
- * expandable abstracts and a live text filter.
+ * Loads WordPress-exported publications CSVs (journal / conference / patent,
+ * each split into international + domestic), normalizes the messy fields, and
+ * renders entries grouped by year with International/Domestic tabs, a live
+ * text filter and expandable abstracts.
  *
  * To update the site, just replace the CSV files in /data — no build step.
  * ========================================================================= */
@@ -218,15 +219,8 @@
     mount.innerHTML = html;
   }
 
-  /* ----------------------------- public init ----------------------------- */
-  // config: { csv, type, mount, count, search }  (ids are element ids)
-  function init(config) {
-    const mount = document.getElementById(config.mount);
-    const countEl = config.count ? document.getElementById(config.count) : null;
-    const searchEl = config.search ? document.getElementById(config.search) : null;
-    let all = [];
-
-    // expand/collapse abstracts (event delegation)
+  // expand/collapse abstracts via event delegation
+  function wireAbstractToggle(mount) {
     mount.addEventListener("click", function (e) {
       const btn = e.target.closest && e.target.closest(".abs-toggle");
       if (!btn) return;
@@ -237,48 +231,140 @@
       else { box.setAttribute("hidden", ""); btn.textContent = "초록 ▾"; }
       btn.setAttribute("aria-expanded", String(open));
     });
+  }
+
+  function errorHtml(err) {
+    return (
+      '<p class="error">데이터를 불러오지 못했습니다 (' + esc(String(err && err.message)) +
+      ").<br>로컬에서 미리 보려면 이 폴더에서 <code>python -m http.server</code> 를 실행한 뒤 " +
+      '<code>http://localhost:8000</code> 로 접속하세요. ' +
+      "(파일을 브라우저로 직접 여는 <code>file://</code> 방식은 보안정책상 CSV를 읽지 못합니다. " +
+      "GitHub Pages에 배포하면 정상 동작합니다.)</p>"
+    );
+  }
+
+  function loadCsv(path) {
+    return fetch(path)
+      .then((res) => { if (!res.ok) throw new Error("HTTP " + res.status + " — " + path); return res.text(); })
+      .then((text) => {
+        const recs = rowsToObjects(parseCSV(text)).filter((r) => (r.title || "").trim());
+        recs.forEach((r) => { r._hay = haystack(r); });
+        return recs;
+      });
+  }
+
+  /* ------------------------- single-source init -------------------------- */
+  // config: { csv, type, mount, count, search }
+  function init(config) {
+    const mount = document.getElementById(config.mount);
+    const countEl = config.count ? document.getElementById(config.count) : null;
+    const searchEl = config.search ? document.getElementById(config.search) : null;
+    let all = [];
+    wireAbstractToggle(mount);
 
     function apply() {
       const q = searchEl ? searchEl.value.trim().toLowerCase() : "";
-      const filtered = q
-        ? all.filter((r) => r._hay.indexOf(q) !== -1)
-        : all;
+      const filtered = q ? all.filter((r) => r._hay.indexOf(q) !== -1) : all;
       if (countEl) {
-        countEl.textContent = q
-          ? filtered.length + " / " + all.length + "건"
-          : all.length + "건";
+        countEl.textContent = q ? filtered.length + " / " + all.length + "건" : all.length + "건";
       }
       render(filtered, config.type, mount);
     }
 
     if (searchEl) {
       let t;
-      searchEl.addEventListener("input", function () {
-        clearTimeout(t);
-        t = setTimeout(apply, 120);
+      searchEl.addEventListener("input", function () { clearTimeout(t); t = setTimeout(apply, 120); });
+    }
+
+    loadCsv(config.csv)
+      .then((recs) => { all = recs; apply(); })
+      .catch((err) => { mount.innerHTML = errorHtml(err); });
+  }
+
+  /* ----------------- tabbed category init (Int'l / Domestic) ------------- */
+  // config: {
+  //   type, mount, count, search, tabsEl,
+  //   sources: [{ key, label, csv }, ...],
+  //   default: key
+  // }
+  function initCategory(config) {
+    const mount = document.getElementById(config.mount);
+    const countEl = config.count ? document.getElementById(config.count) : null;
+    const searchEl = config.search ? document.getElementById(config.search) : null;
+    const tabsEl = config.tabsEl ? document.getElementById(config.tabsEl) : null;
+    const sources = config.sources;
+    const data = {};       // key -> records[]
+    let active = null;
+    wireAbstractToggle(mount);
+
+    // build the tab bar
+    if (tabsEl) {
+      tabsEl.innerHTML = sources
+        .map((s) => '<button type="button" class="tab" data-key="' + esc(s.key) + '">' +
+          esc(s.label) + ' <span class="tab-count" data-count="' + esc(s.key) + '"></span></button>')
+        .join("");
+      tabsEl.addEventListener("click", function (e) {
+        const b = e.target.closest && e.target.closest(".tab");
+        if (b) setActive(b.getAttribute("data-key"), true);
       });
     }
 
-    fetch(config.csv)
-      .then((res) => {
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        return res.text();
-      })
-      .then((text) => {
-        all = rowsToObjects(parseCSV(text)).filter((r) => (r.title || "").trim());
-        all.forEach((r) => { r._hay = haystack(r); });
-        apply();
-      })
-      .catch((err) => {
-        mount.innerHTML =
-          '<p class="error">데이터를 불러오지 못했습니다 (' + esc(String(err.message)) +
-          ").<br>로컬에서 미리 보려면 이 폴더에서 <code>python -m http.server</code> 를 실행한 뒤 " +
-          '<code>http://localhost:8000</code> 로 접속하세요. ' +
-          "(파일을 브라우저로 직접 여는 <code>file://</code> 방식은 보안정책상 CSV를 읽지 못합니다. " +
-          "GitHub Pages에 배포하면 정상 동작합니다.)</p>";
+    function apply() {
+      const q = searchEl ? searchEl.value.trim().toLowerCase() : "";
+      const all = data[active] || [];
+      const filtered = q ? all.filter((r) => r._hay.indexOf(q) !== -1) : all;
+      if (countEl) {
+        countEl.textContent = q ? filtered.length + " / " + all.length + "건" : all.length + "건";
+      }
+      render(filtered, config.type, mount);
+    }
+
+    function setActive(key, updateHash) {
+      if (!data[key]) return;
+      active = key;
+      if (tabsEl) {
+        Array.prototype.forEach.call(tabsEl.querySelectorAll(".tab"), function (b) {
+          b.classList.toggle("active", b.getAttribute("data-key") === key);
+        });
+      }
+      if (updateHash && global.history && history.replaceState) {
+        history.replaceState(null, "", "#" + key);
+      }
+      apply();
+    }
+
+    if (searchEl) {
+      let t;
+      searchEl.addEventListener("input", function () { clearTimeout(t); t = setTimeout(apply, 120); });
+    }
+    // nav dropdown links like journal.html#domestic switch the tab
+    global.addEventListener("hashchange", function () {
+      const k = location.hash.replace(/^#/, "");
+      if (data[k] && k !== active) setActive(k, false);
+    });
+
+    Promise.all(sources.map(function (s) {
+      return loadCsv(s.csv).then(function (recs) {
+        data[s.key] = recs;
+        if (tabsEl) {
+          const c = tabsEl.querySelector('[data-count="' + s.key + '"]');
+          if (c) c.textContent = "(" + recs.length + ")";
+        }
       });
+    }))
+      .then(function () {
+        const hashKey = location.hash.replace(/^#/, "");
+        const start = data[hashKey] ? hashKey : (config.default || sources[0].key);
+        setActive(start, false);
+      })
+      .catch(function (err) { mount.innerHTML = errorHtml(err); });
   }
 
   // expose
-  global.Pubs = { init: init, _parseCSV: parseCSV, _rowsToObjects: rowsToObjects };
+  global.Pubs = {
+    init: init,
+    initCategory: initCategory,
+    _parseCSV: parseCSV,
+    _rowsToObjects: rowsToObjects,
+  };
 })(window);

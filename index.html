@@ -13,9 +13,27 @@
       <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
       <nav class="nav">
         <a href="index.html" class="active">Home</a>
-        <a href="journal.html">Journal</a>
-        <a href="conferences.html">Conferences</a>
-        <a href="patents.html">Patents</a>
+        <div class="dropdown">
+          <a href="journal.html" class="drop-toggle">Journal</a>
+          <div class="dropdown-menu">
+            <a href="journal.html#international">International</a>
+            <a href="journal.html#domestic">Domestic</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <a href="conferences.html" class="drop-toggle">Conferences</a>
+          <div class="dropdown-menu">
+            <a href="conferences.html#international">International</a>
+            <a href="conferences.html#domestic">Domestic</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <a href="patents.html" class="drop-toggle">Patents</a>
+          <div class="dropdown-menu">
+            <a href="patents.html#international">International</a>
+            <a href="patents.html#domestic">Domestic</a>
+          </div>
+        </div>
       </nav>
     </div>
   </header>
@@ -26,7 +44,7 @@
       <h1>LIT Laboratory</h1>
       <p class="lead">
         KAIST LIT 연구실의 출판물 아카이브입니다. 학술지 논문, 국제·국내 학술대회 논문,
-        특허 정보를 연도별로 확인할 수 있습니다.
+        특허 정보를 국제/국내로 나누어 연도별로 확인할 수 있습니다.
       </p>
     </section>
     <!-- ▲▲▲ 연구실 소개 문구 끝 ▲▲▲ -->
@@ -36,16 +54,19 @@
         <div class="c-count" id="count-journal">—</div>
         <h3>Journal Papers</h3>
         <div class="c-desc">학술지 논문</div>
+        <div class="c-break" id="break-journal">&nbsp;</div>
       </a>
       <a class="card" href="conferences.html">
         <div class="c-count" id="count-conference">—</div>
         <h3>Conference Papers</h3>
         <div class="c-desc">학술대회 논문</div>
+        <div class="c-break" id="break-conference">&nbsp;</div>
       </a>
       <a class="card" href="patents.html">
         <div class="c-count" id="count-patent">—</div>
         <h3>Patents</h3>
         <div class="c-desc">특허</div>
+        <div class="c-break" id="break-patent">&nbsp;</div>
       </a>
     </section>
   </main>
@@ -56,21 +77,29 @@
 
   <script src="assets/js/pubs.js"></script>
   <script>
-    // populate the year and the per-category counts on the landing cards
     document.getElementById("yr").textContent = new Date().getFullYear();
-    [
-      ["data/journal.csv", "count-journal"],
-      ["data/conference.csv", "count-conference"],
-      ["data/patent.csv", "count-patent"],
-    ].forEach(function (pair) {
-      fetch(pair[0])
+
+    function countCsv(path) {
+      return fetch(path)
         .then(function (r) { return r.ok ? r.text() : Promise.reject(); })
         .then(function (t) {
-          var n = Pubs._rowsToObjects(Pubs._parseCSV(t))
+          return Pubs._rowsToObjects(Pubs._parseCSV(t))
             .filter(function (x) { return (x.title || "").trim(); }).length;
-          document.getElementById(pair[1]).textContent = n;
+        });
+    }
+
+    [
+      { id: "journal", intl: "data/journal_international.csv", dom: "data/journal_domestic.csv" },
+      { id: "conference", intl: "data/conference_international.csv", dom: "data/conference_domestic.csv" },
+      { id: "patent", intl: "data/patent_international.csv", dom: "data/patent_domestic.csv" },
+    ].forEach(function (c) {
+      Promise.all([countCsv(c.intl), countCsv(c.dom)])
+        .then(function (n) {
+          document.getElementById("count-" + c.id).textContent = n[0] + n[1];
+          document.getElementById("break-" + c.id).textContent =
+            "International " + n[0] + " · Domestic " + n[1];
         })
-        .catch(function () { document.getElementById(pair[1]).textContent = "?"; });
+        .catch(function () { document.getElementById("count-" + c.id).textContent = "?"; });
     });
   </script>
 </body>
