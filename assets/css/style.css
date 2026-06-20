@@ -261,37 +261,38 @@ a:hover { text-decoration: underline; }
 /* ---------- about page — full-screen animated panels ---------- */
 .about-panels { overflow-x: hidden; }
 .about-panel {
-  min-height: 92vh; display: flex; align-items: center; padding: 80px 0;
+  min-height: 62vh; display: flex; align-items: center; padding: 72px 0;
   background: var(--pbg, #fff); color: var(--pfg, #1a1d21); overflow: hidden;
 }
 .panel-content { width: 100%; will-change: transform, opacity; }
 @media (prefers-reduced-motion: reduce) { .panel-content { opacity: 1 !important; transform: none !important; } }
 
-.about-panel .eyebrow { color: var(--plink, var(--accent)); font-weight: 600;
-  letter-spacing: .04em; text-transform: uppercase; font-size: .82rem; margin: 0 0 10px; }
-.about-panel h1 { color: var(--phead, var(--fg)); font-size: clamp(2rem, 5vw, 3.4rem); margin: 0 0 .3em; line-height: 1.15; }
-.about-panel h2 { color: var(--phead, var(--accent-dark)); font-size: clamp(1.7rem, 4vw, 2.6rem);
-  margin: 0 0 .6em; border: none; padding: 0; }
-.about-panel .lead { color: var(--pfg); font-size: clamp(1.1rem, 2.4vw, 1.6rem); max-width: 60ch; margin: 0; line-height: 1.6; }
-.about-panel .muted-body { color: var(--pmuted, #374151); font-size: clamp(1.05rem, 2.2vw, 1.45rem); max-width: 64ch; margin: 0; line-height: 1.65; }
-.about-panel .about-list li { color: var(--pfg); font-size: clamp(1rem, 1.8vw, 1.25rem); margin: .5em 0; }
+.about-panel .eyebrow { color: var(--plink); font-weight: 600;
+  letter-spacing: .05em; text-transform: uppercase; font-size: .85rem; margin: 0 0 16px; }
+.about-panel h1 { color: var(--phead); font-size: clamp(2.2rem, 5vw, 3.4rem); margin: 0 0 .55em; line-height: 1.15; letter-spacing: -.01em; }
+.about-panel h2 { color: var(--phead); font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+  margin: 0 0 .85em; border: none; padding: 0; line-height: 1.2; }
+.about-panel .lead { color: var(--pfg); font-size: clamp(1.2rem, 2.3vw, 1.6rem); max-width: 62ch; margin: 0; line-height: 1.75; }
+.about-panel .muted-body { color: var(--pmuted); font-size: clamp(1.15rem, 2.1vw, 1.5rem); max-width: 66ch; margin: 0; line-height: 1.8; }
+.about-panel .about-list { margin-top: 0; }
+.about-panel .about-list li { color: var(--pfg); font-size: clamp(1.1rem, 1.9vw, 1.3rem); margin: .7em 0; line-height: 1.6; }
 .about-panel .about-list strong { color: var(--phead); }
-.about-panel .about-morelink { color: var(--plink, var(--accent)); font-size: 1.05rem; }
-.about-panel .highlight-list li { color: var(--pfg); border-color: var(--pborder, var(--line)); font-size: clamp(.95rem, 1.6vw, 1.1rem); }
+.about-panel .about-morelink { color: var(--plink); font-size: 1.1rem; display: inline-block; margin-top: .6em; }
+.about-panel .highlight-list li { color: var(--pfg); border-color: var(--pborder); font-size: clamp(1rem, 1.7vw, 1.15rem); padding: 14px 0; line-height: 1.7; }
 .about-panel .highlight-list em { color: var(--pmuted); }
-.about-panel .highlight-list a { color: var(--plink, var(--accent)); }
+.about-panel .highlight-list a { color: var(--plink); }
 
-/* 6개 패널 색상 (밝음/컬러 교차) */
-.about-panel.p1 { --pbg: linear-gradient(135deg, #0b5cad, #073f78); --pfg:#fff; --phead:#fff; --pmuted:#dbe7f6; --plink:#bfe0ff; --pborder:rgba(255,255,255,.25); }
-.about-panel.p2 { --pbg:#f6f8fa; --pfg:#1f2733; --phead:#073f78; --pmuted:#5b6675; --plink:#0b5cad; --pborder:#e5e7eb; }
-.about-panel.p3 { --pbg: linear-gradient(135deg, #0fa091, #0c6f7d); --pfg:#fff; --phead:#fff; --pmuted:#d6f3ee; --plink:#ccfff7; --pborder:rgba(255,255,255,.25); }
-.about-panel.p4 { --pbg:#15233b; --pfg:#fff; --phead:#fff; --pmuted:#bcc8dd; --plink:#9fd0ff; --pborder:rgba(255,255,255,.2); }
-.about-panel.p5 { --pbg:#ffffff; --pfg:#1a1d21; --phead:#073f78; --pmuted:#6b7280; --plink:#0b5cad; --pborder:#e5e7eb; }
-.about-panel.p6 { --pbg: linear-gradient(135deg, #073f78, #0b5cad); --pfg:#fff; --phead:#fff; --pmuted:#dbe7f6; --plink:#bfe0ff; --pborder:rgba(255,255,255,.25); }
+/* 6개 패널 색상 — 네이비·틸 계열, 밝음/어두움 교차 */
+.about-panel.p1 { --pbg: linear-gradient(135deg, #16385f, #0a2240); --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#8fc7ff; --pborder:rgba(255,255,255,.22); }
+.about-panel.p2 { --pbg:#f5f7fb; --pfg:#334155; --phead:#0a2240; --pmuted:#5b6675; --plink:#1d6fb8; --pborder:#e3e8ef; }
+.about-panel.p3 { --pbg: linear-gradient(135deg, #125e6b, #0b3c47); --pfg:#e9f6f5; --phead:#fff; --pmuted:#bfe0dd; --plink:#a7eee2; --pborder:rgba(255,255,255,.22); }
+.about-panel.p4 { --pbg:#eaf1f9; --pfg:#334155; --phead:#0a2240; --pmuted:#5b6675; --plink:#1d6fb8; --pborder:#dbe5f0; }
+.about-panel.p5 { --pbg:#ffffff; --pfg:#1f2733; --phead:#0a2240; --pmuted:#64748b; --plink:#1d6fb8; --pborder:#e5e7eb; }
+.about-panel.p6 { --pbg: linear-gradient(135deg, #0a2240, #1d4e86); --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#8fc7ff; --pborder:rgba(255,255,255,.22); }
 
-/* 연구분야 토픽 카드 — 패널 색 위에서도 보이도록 반투명 카드 */
-.about-panel .topic { background: rgba(255,255,255,.7); border-color: rgba(0,0,0,.06); }
-.about-panel.p5 .topic { background: var(--soft); border-color: var(--line); }
+/* 연구분야 토픽 카드 */
+.about-panel .topic { background: rgba(255,255,255,.78); border-color: rgba(0,0,0,.06); }
+.about-panel.p5 .topic { background: #f6f8fa; border-color: var(--line); }
 
 /* ---------- about page (legacy contact/topic base) ---------- */
 .about-hero { padding: 48px 0 8px; }
