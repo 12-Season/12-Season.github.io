@@ -282,17 +282,23 @@ a:hover { text-decoration: underline; }
 .about-panel .highlight-list em { color: var(--pmuted); }
 .about-panel .highlight-list a { color: var(--plink); }
 
-/* 6개 패널 색상 — 네이비·틸 계열, 밝음/어두움 교차 */
-.about-panel.p1 { --pbg: linear-gradient(135deg, #16385f, #0a2240); --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#8fc7ff; --pborder:rgba(255,255,255,.22); }
-.about-panel.p2 { --pbg:#f5f7fb; --pfg:#334155; --phead:#0a2240; --pmuted:#5b6675; --plink:#1d6fb8; --pborder:#e3e8ef; }
-.about-panel.p3 { --pbg: linear-gradient(135deg, #125e6b, #0b3c47); --pfg:#e9f6f5; --phead:#fff; --pmuted:#bfe0dd; --plink:#a7eee2; --pborder:rgba(255,255,255,.22); }
-.about-panel.p4 { --pbg:#eaf1f9; --pfg:#334155; --phead:#0a2240; --pmuted:#5b6675; --plink:#1d6fb8; --pborder:#dbe5f0; }
-.about-panel.p5 { --pbg:#ffffff; --pfg:#1f2733; --phead:#0a2240; --pmuted:#64748b; --plink:#1d6fb8; --pborder:#e5e7eb; }
-.about-panel.p6 { --pbg: linear-gradient(135deg, #0a2240, #1d4e86); --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#8fc7ff; --pborder:rgba(255,255,255,.22); }
+/* 패널 색상 — 소개만 딥네이비, 이후 흰색/밝은회색 교차 */
+.about-panel.p1 { --pbg: linear-gradient(140deg, #16385f, #0a2240); --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#8fc7ff; --pborder:rgba(255,255,255,.22); }
+.about-panel.p2,
+.about-panel.p4 { --pbg:#ffffff; --pfg:#28323f; --phead:#0a2240; --pmuted:#5b6675; --plink:#1d6fb8; --pborder:#e5e7eb; }
+.about-panel.p3 { --pbg:#f3f5f8; --pfg:#28323f; --phead:#0a2240; --pmuted:#5b6675; --plink:#1d6fb8; --pborder:#e2e7ee; }
 
-/* 연구분야 토픽 카드 */
-.about-panel .topic { background: rgba(255,255,255,.78); border-color: rgba(0,0,0,.06); }
-.about-panel.p5 .topic { background: #f6f8fa; border-color: var(--line); }
+.about-vision { margin-top: 1.1em; }
+
+/* 연구 분야 — 큰 박스 안에 세로 3개 */
+.research-detail { border: 1px solid var(--pborder); border-radius: 16px; background: #fff; overflow: hidden; }
+.research-area { padding: 22px 26px; }
+.research-area + .research-area { border-top: 1px solid var(--pborder); }
+.research-area h3 { margin: 0 0 .4em; font-size: clamp(1.2rem, 2.2vw, 1.55rem); color: var(--phead); }
+.research-area p { margin: 0 0 .7em; color: var(--pmuted); font-size: clamp(1rem, 1.7vw, 1.15rem); line-height: 1.7; max-width: 72ch; }
+.research-area ul { margin: 0; padding-left: 1.2em; }
+.research-area li { color: #3a4452; font-size: clamp(.98rem, 1.5vw, 1.1rem); margin: .35em 0; line-height: 1.55; }
+@media (max-width: 600px) { .research-area { padding: 18px 18px; } }
 
 /* ---------- about page (legacy contact/topic base) ---------- */
 .about-hero { padding: 48px 0 8px; }
@@ -564,7 +570,9 @@ a:hover { text-decoration: underline; }
   .lb-img { max-height: 70vh; }
 }
 
-/* ---------- home: recent news block ---------- */
+/* ---------- home: research areas + recent news ---------- */
+.home-research { padding: 28px 0 8px; }
+
 .home-news { padding: 8px 0 48px; }
 .hn-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
   border-bottom: 2px solid var(--line); padding-bottom: 8px; margin-bottom: 6px; }
