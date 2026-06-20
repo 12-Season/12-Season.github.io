@@ -39,7 +39,7 @@
   // 노출 (people.js 등 동적 렌더링에서 사용)
   window.LitReveal = { observe: observe };
 
-  /* ---- 패널 스크롤 애니메이션 (.panel .panel-content): 오른쪽에서 등장 / 위로 오버랩되며 사라짐 ---- */
+  /* ---- 패널 스크롤 애니메이션 (.panel .panel-content): 오른쪽에서 페이드인, 한 번 나타나면 유지 ---- */
   (function () {
     var contents = Array.prototype.slice.call(document.querySelectorAll(".panel .panel-content"));
     if (!contents.length) return;
@@ -50,12 +50,10 @@
       var vh = window.innerHeight || document.documentElement.clientHeight;
       contents.forEach(function (c) {
         var r = c.getBoundingClientRect();
-        var t = (r.top + r.height / 2 - vh / 2) / (vh / 2); // -1(위)…0(중앙)…+1(아래)
-        var k = clamp((Math.abs(t) - 0.18) / 0.72, 0, 1);
-        var tx = 0, ty = 0;
-        if (t > 0) tx = k * 90; else ty = -k * 50;
-        c.style.opacity = (1 - k).toFixed(3);
-        c.style.transform = "translate(" + tx.toFixed(1) + "px," + ty.toFixed(1) + "px)";
+        // 요소 상단이 화면 하단(vh)에서 0.72*vh 까지 올라오는 동안만 등장 → 이후엔 계속 보임(사라지지 않음)
+        var p = clamp((vh - r.top) / (vh * 0.28), 0, 1);
+        c.style.opacity = p.toFixed(3);
+        c.style.transform = "translateX(" + ((1 - p) * 80).toFixed(1) + "px)";
       });
       ticking = false;
     }
