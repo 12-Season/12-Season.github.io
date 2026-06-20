@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — LIT @ KAIST</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="assets/css/style.css?v=20260620c" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="index.html"><span>LIT</span> @ KAIST</a>
+      <nav class="nav">
+        <a href="index.html">Home</a>
+        <a href="news.html">News</a>
+        <a href="people.html">People</a>
+        <a href="album.html">Album</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="page-head">
+      <h1>Admin</h1>
+      <div class="count">GitHub 토큰으로 데이터를 직접 수정합니다. 모든 변경은 커밋 이력으로 남고 1~2분 뒤 사이트에 반영됩니다.</div>
+    </div>
+    <div id="admRoot"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">© <span id="yr"></span> LIT Laboratory, KAIST · Admin</div>
+  </footer>
+
+  <script src="assets/js/pubs.js?v=20260620c"></script>
+  <script src="assets/js/admin.js?v=20260620c"></script>
+  <script>
+    document.getElementById("yr").textContent = new Date().getFullYear();
+    Admin.init("admRoot");
+  </script>
+</body>
+</html>
