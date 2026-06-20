@@ -34,7 +34,7 @@
                    (x.thumbnail_file || x.image_files || "").trim();
           })
           .sort(function (a, b) { return (b.date || "").localeCompare(a.date || ""); })
-          .slice(0, 3);
+          .slice(0, 2);
         g.innerHTML = rows.map(function (r) {
           var th = (r.thumbnail_file || (r.image_files || "").split("|")[0] || "").trim();
           return '<a class="hg-item" href="album.html" title="' + esc(r.title) + '">' +
