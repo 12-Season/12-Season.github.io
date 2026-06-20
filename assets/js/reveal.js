@@ -90,4 +90,15 @@
     );
     update();
   }
+
+  /* ---- 3) 스크롤 내리면 헤더를 흰 배경으로 ---- */
+  var header = document.querySelector(".site-header");
+  if (header) {
+    var hTick = false;
+    function hUpdate() { header.classList.toggle("scrolled", window.pageYOffset > 8); hTick = false; }
+    window.addEventListener("scroll", function () {
+      if (!hTick) { window.requestAnimationFrame(hUpdate); hTick = true; }
+    }, { passive: true });
+    hUpdate();
+  }
 })();
