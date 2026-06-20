@@ -42,8 +42,10 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap; gap: 8px; padding-top: 14px; padding-bottom: 14px;
 }
-.brand { font-weight: 700; font-size: 1.15rem; color: var(--fg); letter-spacing: .02em; }
+.brand { font-weight: 700; font-size: 1.15rem; color: var(--fg); letter-spacing: .02em; display: flex; align-items: center; }
 .brand span { color: var(--accent); }
+.brand-logo { height: 38px; width: auto; display: block; }
+@media (max-width: 600px) { .brand-logo { height: 32px; } }
 .nav { display: flex; gap: 4px; flex-wrap: wrap; }
 .nav a {
   color: var(--fg); padding: 6px 12px; border-radius: 6px; font-size: .95rem;
@@ -724,6 +726,8 @@ a:hover { text-decoration: underline; }
   border-top: 1px solid var(--line); margin-top: 40px; padding: 24px 0 48px;
   color: var(--muted); font-size: .85rem;
 }
+.footer-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.footer-logo { height: 30px; width: auto; display: block; opacity: .92; }
 
 @media (max-width: 600px) {
   .hero h1 { font-size: 1.7rem; }
