@@ -280,8 +280,21 @@ a:hover { text-decoration: underline; }
 .topic {
   border: 1px solid var(--line); border-radius: 12px; padding: 18px; background: var(--soft);
 }
-.topic h3 { margin: 0 0 .35em; font-size: 1.05rem; color: var(--fg); }
+.topic h3 { margin: 0 0 .4em; font-size: 1.05rem; color: var(--fg); }
 .topic p { margin: 0; color: var(--muted); font-size: .92rem; }
+.topic ul { margin: 0; padding-left: 1.1em; }
+.topic li { color: var(--muted); font-size: .88rem; line-height: 1.55; margin: .25em 0; }
+
+/* About — 정보 목록 / 더보기 링크 / 성과 목록 */
+.about-list { list-style: none; margin: .2em 0; padding: 0; }
+.about-list li { margin: .35em 0; color: #374151; }
+.about-list strong { color: var(--accent-dark); }
+.about-morelink { font-weight: 600; font-size: .95rem; }
+.highlight-list { list-style: none; margin: .2em 0 0; padding: 0; }
+.highlight-list li { padding: 11px 0; border-bottom: 1px solid var(--line);
+  line-height: 1.65; color: #374151; font-size: .95rem; }
+.highlight-list li:last-child { border-bottom: none; }
+.highlight-list em { color: #4b5563; }
 
 .contact-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;
