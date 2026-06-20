@@ -71,7 +71,7 @@ a:hover { text-decoration: underline; }
 .lang-toggle:hover { border-color: var(--accent); background: #fff; }
 
 /* nav dropdown (Journal/Conferences/Patents → International / Domestic) */
-.dropdown { position: relative; }
+.dropdown { position: relative; display: flex; align-items: stretch; }
 .dropdown > .drop-toggle::after { content: " ▾"; font-size: .8em; color: var(--muted); }
 .dropdown > .drop-toggle.active::after { color: #fff; }
 .dropdown-menu {
