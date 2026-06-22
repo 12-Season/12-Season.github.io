@@ -855,7 +855,7 @@ a:hover { text-decoration: underline; }
 .fl-dee-k { height: 25px; }
 .fl-coe-e { height: 26px; }
 .fl-dee-e { height: 25px; }
-.f-links { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-top: 4px; border-top: 1px solid var(--line); }
+.f-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
 .f-links a { color: var(--fg); font-weight: 500; }
 .f-contact { color: var(--muted); line-height: 1.7; }
 .f-ext { margin-top: 2px; }
