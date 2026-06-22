@@ -237,7 +237,48 @@
         { name: "종료연도", label: "종료연도" },
       ],
     },
+    seminars: {
+      label: "Seminar 목록", csv: "data/seminars.csv", idCol: "slug",
+      title: function (r) { return r.title || r.slug || ""; },
+      sub: function (r) { return [r.term, r.slug].filter(function (x) { return (x || "").trim(); }).join(" · "); },
+      fields: [
+        { name: "slug", label: "slug (영문·숫자, 예: isac-2026)", required: true },
+        { name: "title", label: "제목 (한국어)" },
+        { name: "title_en", label: "Title (English)" },
+        { name: "term", label: "학기 (예: 2026 여름)" },
+        { name: "term_en", label: "Term (English)" },
+        { name: "intro", label: "소개 (한국어)", type: "textarea" },
+        { name: "intro_en", label: "소개 (English)", type: "textarea" },
+        { name: "refs", label: "참고자료 (라벨::URL, 여러 개는 | 로 구분)" },
+        { name: "status", label: "상태", type: "select", options: STATUS_PUB },
+        { name: "syllabus", label: "Syllabus PDF", type: "file", accept: ".pdf",
+          dir: function () { return "assets/files/seminar/" + (slug(formVal("slug")) || "seminar"); },
+          filename: function () { return "syllabus.pdf"; } },
+      ],
+    },
+    seminar_weeks: {
+      label: "Seminar 주차", targetsFrom: "data/seminars.csv", idCol: "week",
+      title: function (r) { return "Week " + (r.week || "") + (r.topic ? " — " + r.topic : ""); },
+      sub: function (r) { return [r.date, r.presenter].filter(function (x) { return (x || "").trim(); }).join(" · "); },
+      fields: [
+        { name: "week", label: "주차 (숫자)", required: true },
+        { name: "date", label: "날짜 (YYYY-MM-DD)" },
+        { name: "topic", label: "주제" },
+        { name: "topic_en", label: "Topic (English)" },
+        { name: "presenter", label: "발표자" },
+        { name: "note", label: "비고" },
+        { name: "material", label: "발표자료 (PDF/PPT)", type: "file", accept: ".pdf,.ppt,.pptx,.key",
+          dir: function () { return "assets/files/seminar/" + (curPubTarget || "").replace(/^seminar_/, ""); },
+          filename: function (file) { return safeName(file.name); } },
+      ],
+    },
   };
+
+  function safeName(n) {
+    n = String(n || "file");
+    var dot = n.lastIndexOf("."), ext = dot >= 0 ? n.slice(dot).toLowerCase() : "";
+    return slug(dot >= 0 ? n.slice(0, dot) : n) + ext;
+  }
 
   /* ---------------- UI ---------------- */
   var root, msgEl, listEl, curKey, curPubTarget;
@@ -247,7 +288,7 @@
     msgEl.className = "adm-msg" + (kind ? " adm-" + kind : "");
   }
   function csvPathOf(col) {
-    return col.isPub ? "data/" + curPubTarget + ".csv" : col.csv;
+    return (col.isPub || col.targetsFrom) ? "data/" + curPubTarget + ".csv" : col.csv;
   }
 
   function init(mountId) {
@@ -337,18 +378,33 @@
     });
     var col = COLLECTIONS[key];
     var pubSel = document.getElementById("admPubSel");
-    if (col.isPub) {
-      curPubTarget = col.targets[0].key;
-      pubSel.innerHTML = '<select id="admPubTarget">' + col.targets.map(function (t) {
-        return '<option value="' + t.key + '">' + esc(t.label) + "</option>";
+    document.getElementById("admFilter").value = "";
+
+    function buildSel(targets) {
+      curPubTarget = targets[0].key;
+      pubSel.innerHTML = '<select id="admPubTarget">' + targets.map(function (t) {
+        return '<option value="' + esc(t.key) + '">' + esc(t.label) + "</option>";
       }).join("") + "</select>";
       document.getElementById("admPubTarget").addEventListener("change", function () {
         curPubTarget = this.value; loadList();
       });
-    } else {
-      pubSel.innerHTML = "";
     }
-    document.getElementById("admFilter").value = "";
+
+    if (col.isPub) { buildSel(col.targets); loadList(); return; }
+    if (col.targetsFrom) {
+      pubSel.innerHTML = '<span class="muted" style="font-size:.9rem">세미나 불러오는 중…</span>';
+      fetch(col.targetsFrom + "?z=" + Math.round(performance.now()), { cache: "no-store" })
+        .then(function (r) { return r.text(); })
+        .then(function (txt) {
+          var recs = P._rowsToObjects(P._parseCSV(txt)).filter(function (s) { return (s.slug || "").trim(); });
+          if (!recs.length) { pubSel.innerHTML = ""; curPubTarget = ""; listEl.innerHTML = '<p class="muted">먼저 Seminar 목록에서 세미나를 추가하세요.</p>'; return; }
+          buildSel(recs.map(function (s) { return { key: "seminar_" + s.slug.trim(), label: (s.title || s.slug) + " (" + s.slug.trim() + ")" }; }));
+          loadList();
+        })
+        .catch(function () { pubSel.innerHTML = ""; });
+      return;
+    }
+    pubSel.innerHTML = "";
     loadList();
   }
 
@@ -411,7 +467,7 @@
     pendingFiles = {};
     document.getElementById("admSubmit").onclick = onSubmit; // 이동 폼에서 바뀐 핸들러 복구
     document.getElementById("admFormTitle").textContent =
-      (row ? "수정" : "추가") + " — " + col.label + (col.isPub ? " (" + curPubTarget + ")" : "");
+      (row ? "수정" : "추가") + " — " + col.label + ((col.isPub || col.targetsFrom) ? " (" + curPubTarget + ")" : "");
     var f = document.getElementById("admForm");
     f.innerHTML = col.fields.map(function (fd) { return fieldHtml(fd, row); }).join("");
     // 이미지 입력 미리보기 핸들러
@@ -446,6 +502,12 @@
       return '<label class="am-field">' + lab +
         '<input type="file" accept="image/*" multiple data-name="' + fd.name + '"></label>';
     }
+    if (fd.type === "file") {
+      return '<label class="am-field">' + lab +
+        (v ? '<span class="am-cur">현재: ' + esc(v) + "</span>" : "") +
+        '<input type="file"' + (fd.accept ? ' accept="' + fd.accept + '"' : "") + ' data-name="' + fd.name + '">' +
+        '<input type="hidden" data-name="' + fd.name + '" value="' + esc(v) + '"></label>';
+    }
     return '<label class="am-field">' + lab + '<input type="text" data-name="' + fd.name + '" value="' + esc(v) + '"></label>';
   }
 
@@ -473,7 +535,7 @@
       // 2) row 객체 구성
       var row = {};
       col.fields.forEach(function (fd) {
-        if (fd.type === "image" || fd.type === "images") return;
+        if (fd.type === "image" || fd.type === "images" || fd.type === "file") return;
         row[fd.name] = formVal(fd.name);
       });
       Object.keys(imgVals).forEach(function (k) { row[k] = imgVals[k]; });
@@ -557,6 +619,19 @@
             result.image_files = paths.join("|");
             result.thumbnail_file = paths[0] || "";
           }));
+        }
+      } else if (fd.type === "file") {
+        if (files && files[0]) {
+          var f0 = files[0];
+          var dir = (fd.dir ? fd.dir() : "assets/files").replace(/\/$/, "");
+          var fn = fd.filename ? fd.filename(f0) : safeName(f0.name);
+          var fpath = dir + "/" + fn;
+          jobs.push(fileToB64(f0, false).then(function (b64) {
+            return uploadImage(fpath, b64, "Upload file: " + fpath).then(function () { result[fd.name] = fpath; });
+          }));
+        } else {
+          var keepF = document.querySelector('#admForm input[type=hidden][data-name="' + fd.name + '"]');
+          result[fd.name] = keepF ? keepF.value : "";
         }
       }
     });
