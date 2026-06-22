@@ -8,6 +8,7 @@
   --line: #e5e7eb;
   --accent: #0b5cad;      /* KAIST-ish blue */
   --accent-dark: #073f78;
+  --nav-active: #0a2f5e;  /* 상단 메뉴 선택 배경 (진한 남색) */
   --soft: #f6f8fa;
   --badge: #b45309;
   --max: 920px;
@@ -19,14 +20,15 @@
 
 * { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+/* 전체 글자를 한 단계 크게: 루트를 키우면 rem 기반 크기가 모두 확대됨 (16 → 18px) */
+html { -webkit-text-size-adjust: 100%; font-size: 112.5%; }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
@@ -70,7 +72,7 @@ a:hover { text-decoration: underline; }
   display: flex; align-items: center;
 }
 .nav a:hover { background: var(--soft); text-decoration: none; }
-.nav a.active { background: var(--accent); color: #fff; border-radius: 0; }
+.nav a.active { background: var(--nav-active); color: #fff; border-radius: 0; }
 
 /* language toggle — 지구본 + 슬라이드 스위치 (KO/EN) */
 .lang-toggle {
