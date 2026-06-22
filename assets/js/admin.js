@@ -207,19 +207,34 @@
         { name: "status", label: "상태", type: "select", options: STATUS_PUB },
       ],
     },
-    projects: {
-      label: "Projects", csv: "data/projects.csv", idCol: "title",
-      sub: function (r) { return (r.status || "") + (r.period ? " · " + r.period : ""); },
+    projects_current: {
+      label: "Projects (진행중)", csv: "data/projects_current.csv", idCol: "과제명",
+      sub: function (r) { return [r["지원기관"], (r["시작"] || "") + (r["종료"] ? "~" + r["종료"] : "")].filter(function (x) { return (x || "").trim(); }).join(" · "); },
       fields: [
-        { name: "title", label: "제목 (한국어)", required: true },
-        { name: "title_en", label: "Title (English)" },
-        { name: "status", label: "상태", type: "select", options: ["current", "past"] },
-        { name: "period", label: "기간 (예: 2023.07–2030.12)" },
-        { name: "agency", label: "지원/주관 기관" },
-        { name: "role", label: "역할 (주관/공동 등)" },
-        { name: "description", label: "설명 (한국어)", type: "textarea" },
-        { name: "description_en", label: "Description (English)", type: "textarea" },
-        { name: "url", label: "링크 URL" },
+        { name: "과제명", label: "과제명", required: true },
+        { name: "지원기관", label: "지원기관" },
+        { name: "유형", label: "유형" },
+        { name: "시작", label: "시작 (예: 2026.04)" },
+        { name: "종료", label: "종료 (예: 2030.12)" },
+        { name: "종료연도", label: "종료연도 (예: 2030)" },
+        { name: "slug", label: "상세 md 파일명 (예: I2SAC)" },
+        { name: "소개", label: "한 줄 소개 (한국어)", type: "textarea" },
+        { name: "소개_en", label: "한 줄 소개 (English)", type: "textarea" },
+      ],
+      // 기간 종료 시 완료(Past)로 이동: 공통 컬럼만 옮기고 현재 목록에서 제거
+      moveTo: { csv: "data/projects_past.csv", label: "→ Past",
+        cols: ["과제명", "지원기관", "유형", "시작", "종료", "종료연도", "원본상태"] },
+    },
+    projects_past: {
+      label: "Projects (완료)", csv: "data/projects_past.csv", idCol: "과제명",
+      sub: function (r) { return [r["종료연도"], r["지원기관"]].filter(function (x) { return (x || "").trim(); }).join(" · "); },
+      fields: [
+        { name: "과제명", label: "과제명", required: true },
+        { name: "지원기관", label: "지원기관" },
+        { name: "유형", label: "유형" },
+        { name: "시작", label: "시작" },
+        { name: "종료", label: "종료" },
+        { name: "종료연도", label: "종료연도" },
       ],
     },
   };
@@ -366,6 +381,7 @@
           '<span class="adm-row-sub">' + esc(col.sub ? col.sub(r) : "") + "</span></div>" +
           '<div class="adm-row-act">' +
             (col.moveToAlumni ? '<button type="button" class="adm-mini" data-act="move" data-id="' + esc(id) + '">→ Alumni</button>' : "") +
+            (col.moveTo ? '<button type="button" class="adm-mini" data-act="move2" data-id="' + esc(id) + '">' + esc(col.moveTo.label || "→ 이동") + "</button>" : "") +
             '<button type="button" class="adm-mini" data-act="edit" data-id="' + esc(id) + '">수정</button>' +
             '<button type="button" class="adm-mini adm-danger" data-act="del" data-id="' + esc(id) + '">삭제</button>' +
           "</div></div>";
@@ -376,6 +392,7 @@
         if (act === "edit") openForm(findRow(id));
         else if (act === "del") doDelete(id);
         else if (act === "move") openMove(findRow(id));
+        else if (act === "move2") doMoveTo(findRow(id));
       });
     });
   }
@@ -561,6 +578,41 @@
     }).then(function () {
       setMsg("삭제 완료! 1~2분 후 반영됩니다.", "ok"); loadList();
     }).catch(function (e) { setMsg(e.message, "err"); });
+  }
+
+  /* ---------------- 다른 CSV로 이동 (예: 현재 과제 → 완료) ---------------- */
+  function doMoveTo(row) {
+    if (!token()) { setMsg("먼저 GitHub 토큰을 저장하세요.", "err"); return; }
+    if (!row) return;
+    var col = COLLECTIONS[curKey];
+    var mv = col.moveTo;
+    var id = (row[col.idCol] || "").trim();
+    if (!global.confirm((mv.label || "이동") + " : " + id + " ?\n완료(Past) 목록으로 옮기고 현재 목록에서 제거합니다.")) return;
+    setMsg("이동 중…", "");
+    var endYear = (row["종료연도"] || "").trim();
+    if (!endYear) { var m = (row["종료"] || "").match(/(\d{4})/); endYear = m ? m[1] : ""; }
+    // 1) 대상(완료)에 추가
+    commitCsv(mv.csv, "Move project to past: " + id, function (rows) {
+      var ix = colIndex(rows);
+      var cells = new Array((rows[0] || []).length).fill("");
+      mv.cols.forEach(function (c) {
+        if (ix[c] == null) return;
+        cells[ix[c]] = c === "종료연도" ? endYear : (row[c] || "");
+      });
+      rows.splice(1, 0, cells);
+    })
+      // 2) 현재에서 제거
+      .then(function () {
+        return commitCsv(col.csv, "Remove project from current: " + id, function (rows) {
+          var idi = colIndex(rows)[col.idCol], hit = false;
+          for (var i = 1; i < rows.length; i++) {
+            if ((rows[i][idi] || "").trim() === id) { rows.splice(i, 1); hit = true; break; }
+          }
+          if (!hit) throw new Error("현재 목록에서 항목을 찾지 못했습니다.");
+        });
+      })
+      .then(function () { setMsg("완료(Past)로 이동했습니다! 1~2분 후 반영됩니다.", "ok"); loadList(); })
+      .catch(function (e) { setMsg("이동 실패: " + e.message, "err"); });
   }
 
   /* ---------------- Member → Alumni 이동 ---------------- */

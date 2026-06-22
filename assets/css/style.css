@@ -335,7 +335,8 @@ a:hover { text-decoration: underline; }
   padding: 20px 22px; margin: 0 0 16px; background: var(--bg); }
 .curproj:hover { box-shadow: 0 6px 22px rgba(0,0,0,.06); }
 .cp-title { margin: 0 0 .35em; font-size: clamp(1.15rem, 2.1vw, 1.45rem); color: var(--accent-dark); line-height: 1.4; }
-.cp-meta { color: var(--accent); font-size: .9rem; margin-bottom: .6em; }
+.cp-meta { color: var(--accent); font-size: .9rem; margin-bottom: .5em; }
+.cp-intro { margin: 0 0 .7em; color: #374151; font-size: 1rem; line-height: 1.6; }
 .cp-more { background: none; border: none; cursor: pointer; padding: 0; font: inherit; }
 
 /* Current 상세 (md 전문) */

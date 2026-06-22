@@ -56,8 +56,9 @@
       rows: function (recs) {
         return recs.filter(function (r) { return (r["과제명"] || "").trim(); }).map(function (r) {
           var s = (r["시작"] || "").trim(), e = (r["종료"] || "").trim();
+          var intro = lang() === "en" ? ((r["소개_en"] || "").trim() || (r["소개"] || "").trim()) : (r["소개"] || "").trim();
           return { title: (r["과제명"] || "").trim(), agency: (r["지원기관"] || "").trim(),
-                   period: s && e ? s + " ~ " + e : (e || s || ""), slug: (r["slug"] || "").trim() };
+                   period: s && e ? s + " ~ " + e : (e || s || ""), slug: (r["slug"] || "").trim(), intro: intro };
         });
       },
     },
@@ -126,6 +127,7 @@
             return '<article class="curproj reveal">' +
               '<h3 class="cp-title">' + esc(p.title) + "</h3>" +
               (p.agency || p.period ? '<div class="cp-meta">' + esc([p.agency, p.period].filter(Boolean).join(" · ")) + "</div>" : "") +
+              (p.intro ? '<p class="cp-intro">' + esc(p.intro) + "</p>" : "") +
               (p.slug ? '<button type="button" class="about-morelink cp-more" data-slug="' + esc(p.slug) + '">' +
                 (lang() === "en" ? "Read more →" : "자세히 보기 →") + "</button>" : "") +
               "</article>";
