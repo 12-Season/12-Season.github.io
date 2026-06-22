@@ -278,6 +278,16 @@
           filename: function (file) { return safeName(file.name); } },
       ],
     },
+    site_text: {
+      label: "Site Text", csv: "data/site_text.csv", idCol: "key",
+      title: function (r) { return r.key || ""; },
+      sub: function (r) { return (r.ko || "").slice(0, 50); },
+      fields: [
+        { name: "key", label: "키 (코드와 연결 — 가급적 수정하지 마세요)", required: true },
+        { name: "ko", label: "한국어", type: "textarea" },
+        { name: "en", label: "English", type: "textarea" },
+      ],
+    },
   };
 
   function safeName(n) {
