@@ -845,8 +845,13 @@ a:hover { text-decoration: underline; }
   border-top: 1px solid var(--line); margin-top: 40px; padding: 24px 0 48px;
   color: var(--muted); font-size: .85rem;
 }
-.footer-inner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.footer-logo { height: 30px; width: auto; display: block; opacity: .92; }
+.footer-inner { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.footer-logo { height: 28px; width: auto; display: block; opacity: .9; }
+/* 언어에 따라 학부/대학 로고 전환 (i18n 이 <html lang> 갱신) */
+html[lang="en"] .footer-logo.lang-ko { display: none; }
+html[lang="ko"] .footer-logo.lang-en { display: none; }
+.footer-inner span { margin-left: auto; }
+@media (max-width: 600px) { .footer-inner span { margin-left: 0; } }
 
 @media (max-width: 600px) {
   .hero h1 { font-size: 1.7rem; }
