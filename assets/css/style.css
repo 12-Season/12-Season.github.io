@@ -864,9 +864,11 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
 }
 /* 공용 푸터 (footer.js 가 주입) */
 .footer-grid { display: flex; flex-direction: column; gap: 14px; }
-.f-logos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; min-height: 25px; }
-/* 로고 PNG의 여백을 트리밍해 두어 단일 높이로도 'KAIST' 크기·위치가 일치합니다 */
+/* 행 높이를 최댓값으로 고정해 KO/EN 전환 시 아래 요소가 움직이지 않게 함 */
+.f-logos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; min-height: 26px; }
+/* 로고 PNG 여백은 트리밍 완료. 영문 로고는 트리밍 비율이 살짝 작아 'KAIST' 크기를 맞추려고 조금 키움 */
 .footer-logo { height: 25px; width: auto; display: block; opacity: .9; }
+.fl-coe-e, .fl-dee-e { height: 25.5px; }
 .f-logos a:hover .footer-logo { opacity: 1; }
 .f-links { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line); }
 .f-links a { color: var(--fg); font-weight: 500; }
