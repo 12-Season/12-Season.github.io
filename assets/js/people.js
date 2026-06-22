@@ -244,6 +244,12 @@
       setActive(valid ? hash : cfg.default || groups[0].key, false);
     });
 
+    // 같은 페이지에서 해시(#faculty/#members/#alumni)가 바뀌면 탭 전환
+    global.addEventListener("hashchange", function () {
+      var h = location.hash.replace(/^#/, "");
+      if (groups.some(function (g) { return g.key === h; })) setActive(h, false);
+    });
+
     // 언어 토글 시: 활성 탭이 마크다운 프로필이면 다시 렌더 (md 내용이 언어별로 다름)
     document.addEventListener("lit:lang", function () {
       var active = tabsEl.querySelector(".tab.active");

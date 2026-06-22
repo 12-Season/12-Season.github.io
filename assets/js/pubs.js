@@ -356,6 +356,11 @@
         const hashKey = location.hash.replace(/^#/, "");
         const start = data[hashKey] ? hashKey : (config.default || sources[0].key);
         setActive(start, false);
+        // 같은 페이지에서 해시(#international/#domestic)가 바뀌면 탭 전환
+        global.addEventListener("hashchange", function () {
+          const k = location.hash.replace(/^#/, "");
+          if (data[k]) setActive(k, false);
+        });
       })
       .catch(function (err) { mount.innerHTML = errorHtml(err); });
   }

@@ -435,7 +435,8 @@ a:hover { text-decoration: underline; }
 .rt-img { aspect-ratio: 4 / 3; border-radius: 14px; overflow: hidden; background: #ffffff;
   border: 1.5px solid #9aa7b8; box-shadow: 0 4px 18px rgba(0,0,0,.07); padding: 12px;
   display: flex; align-items: center; justify-content: center; }
-.rt-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.rt-img img { width: 100%; height: 100%; object-fit: contain; display: block; cursor: zoom-in; }
+.md-body img { cursor: zoom-in; }
 @media (max-width: 720px) { .rt-panel.active { grid-template-columns: 1fr; } .rt-img { order: -1; } }
 
 /* ---------- home: news + gallery ---------- */
