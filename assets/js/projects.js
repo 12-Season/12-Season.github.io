@@ -1,9 +1,8 @@
 /* ==========================================================================
    LIT @ KAIST — Research Projects (Current / Past 토글)
-   - Past : data/projects_past.csv (과제명,지원기관,시작,종료,종료연도,원본상태)
-            → 종료연도별로 묶은 간결한 목록
-   - Current : data/projects.csv (status,title,title_en,period,agency,role,...)
-            → status=current 항목 목록
+   - Past    : data/projects_past.csv  → 종료연도별 간결한 목록
+   - Current : data/projects_current.csv (…,slug) → 카드 → slug 의 상세 md 전문
+               (data/<slug>_ko.md / data/<slug>.md, 한/영)
    ========================================================================== */
 (function (global) {
   var P = global.Pubs;
@@ -14,32 +13,62 @@
   }
   function lang() { return global.LitI18n ? global.LitI18n.get() : "ko"; }
 
-  // 각 탭의 데이터 소스 + 표준 형태로 변환
+  /* ---- 작은 마크다운 → HTML 변환기 (제목/굵게/이탤릭/목록/이미지/링크/문단) ---- */
+  function inlineMd(t) {
+    t = esc(t);
+    t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    t = t.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    return t;
+  }
+  function mdToHtml(md) {
+    var lines = String(md || "").replace(/\r/g, "").split("\n");
+    var out = [], i = 0;
+    while (i < lines.length) {
+      var line = lines[i];
+      if (/^\s*$/.test(line)) { i++; continue; }
+      var im = line.match(/^\s*!\[([^\]]*)\]\(([^)]+)\)\s*$/);
+      if (im) { out.push('<img src="' + esc(im[2]) + '" alt="' + esc(im[1]) + '">'); i++; continue; }
+      var h = line.match(/^(#{1,6})\s+(.*)$/);
+      if (h) { out.push("<h" + h[1].length + ">" + inlineMd(h[2]) + "</h" + h[1].length + ">"); i++; continue; }
+      if (/^\s*[-*]\s+/.test(line)) {
+        var items = [];
+        while (i < lines.length) {
+          if (/^\s*[-*]\s+/.test(lines[i])) { items.push("<li>" + inlineMd(lines[i].replace(/^\s*[-*]\s+/, "")) + "</li>"); i++; }
+          else if (/^\s+\S/.test(lines[i]) && items.length) {
+            items[items.length - 1] = items[items.length - 1].replace(/<\/li>$/, " " + inlineMd(lines[i].trim()) + "</li>"); i++;
+          } else break;
+        }
+        out.push("<ul>" + items.join("") + "</ul>");
+        continue;
+      }
+      var para = [];
+      while (i < lines.length && !/^\s*$/.test(lines[i]) && !/^\s*[-*]\s+/.test(lines[i]) &&
+             !/^#{1,6}\s/.test(lines[i]) && !/^\s*!\[/.test(lines[i])) { para.push(lines[i]); i++; }
+      out.push("<p>" + inlineMd(para.join(" ")) + "</p>");
+    }
+    return out.join("\n");
+  }
+
   var SOURCES = {
     current: {
-      csv: "data/projects.csv",
+      csv: "data/projects_current.csv",
       rows: function (recs) {
-        return recs
-          .filter(function (r) { return (r.status || "").trim().toLowerCase() === "current" && (r.title || "").trim(); })
-          .map(function (r) {
-            var title = lang() === "en" ? (r.title_en || r.title) : r.title;
-            var y = (r.period || "").match(/(\d{4})\s*$/);
-            return { title: (title || "").trim(), agency: (r.agency || "").trim(),
-                     period: (r.period || "").trim(), year: y ? y[1] : "", url: (r.url || "").trim() };
-          });
+        return recs.filter(function (r) { return (r["과제명"] || "").trim(); }).map(function (r) {
+          var s = (r["시작"] || "").trim(), e = (r["종료"] || "").trim();
+          return { title: (r["과제명"] || "").trim(), agency: (r["지원기관"] || "").trim(),
+                   period: s && e ? s + " ~ " + e : (e || s || ""), slug: (r["slug"] || "").trim() };
+        });
       },
     },
     past: {
       csv: "data/projects_past.csv",
       rows: function (recs) {
-        return recs
-          .filter(function (r) { return (r["과제명"] || "").trim(); })
-          .map(function (r) {
-            var s = (r["시작"] || "").trim(), e = (r["종료"] || "").trim();
-            var period = s && e ? s + "–" + e : (e || s || "");
-            return { title: (r["과제명"] || "").trim(), agency: (r["지원기관"] || "").trim(),
-                     period: period, year: (r["종료연도"] || "").trim(), url: "" };
-          });
+        return recs.filter(function (r) { return (r["과제명"] || "").trim(); }).map(function (r) {
+          var s = (r["시작"] || "").trim(), e = (r["종료"] || "").trim();
+          return { title: (r["과제명"] || "").trim(), agency: (r["지원기관"] || "").trim(),
+                   period: s && e ? s + "–" + e : (e || s || ""), year: (r["종료연도"] || "").trim() };
+        });
       },
     },
   };
@@ -47,8 +76,9 @@
   function init(cfg) {
     var mount = document.getElementById(cfg.mount);
     var tabsEl = document.getElementById(cfg.tabsEl);
-    var cache = {};
+    var cache = {}, mdCache = {};
     var active = cfg.default || "current";
+    var detailSlug = null; // Current 상세 보기 중인 slug
     var TABS = [
       { key: "current", ko: "진행 중", en: "Current" },
       { key: "past", ko: "완료", en: "Past" },
@@ -65,13 +95,11 @@
       TABS.forEach(function (t) {
         var b = document.createElement("button");
         b.className = "tab" + (t.key === active ? " active" : "");
-        b.type = "button";
-        b.textContent = en ? t.en : t.ko;
-        b.addEventListener("click", function () { setActive(t.key); });
+        b.type = "button"; b.textContent = en ? t.en : t.ko;
+        b.addEventListener("click", function () { detailSlug = null; setActive(t.key); });
         tabsEl.appendChild(b);
       });
     }
-
     function setActive(key) {
       active = key;
       Array.prototype.forEach.call(tabsEl.querySelectorAll(".tab"), function (b, i) {
@@ -81,49 +109,78 @@
       if (history.replaceState) history.replaceState(null, "", "#" + key);
     }
 
-    function itemHtml(p) {
-      var meta = [p.agency, p.period].filter(function (x) { return (x || "").trim(); }).join(" · ");
-      var title = p.url
-        ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.title) + "</a>"
-        : esc(p.title);
-      return '<li class="proj-item"><span class="pi-title">' + title + "</span>" +
-        (meta ? '<span class="pi-meta">' + esc(meta) + "</span>" : "") + "</li>";
+    function loadCsv(src, cb) {
+      if (cache[src.csv]) { cb(src.rows(cache[src.csv])); return; }
+      fetch(src.csv, { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; })
+        .then(function (t) { cache[src.csv] = t ? P._rowsToObjects(P._parseCSV(t)) : []; cb(src.rows(cache[src.csv])); })
+        .catch(function () { cb([]); });
     }
 
     function render() {
-      var src = SOURCES[active];
+      if (active === "current" && detailSlug) { renderDetail(detailSlug); return; }
       mount.innerHTML = '<p class="muted" style="padding:24px 0">불러오는 중…</p>';
-      var done = function (list) {
-        if (!list.length) {
-          mount.innerHTML = '<p class="muted" style="padding:28px 0">' +
-            (lang() === "en" ? "No projects yet." : "등록된 과제가 없습니다.") + "</p>";
-          return;
-        }
-        // 종료연도(year) 내림차순 그룹
-        var years = [];
-        list.forEach(function (p) { if (p.year && years.indexOf(p.year) < 0) years.push(p.year); });
-        years.sort(function (a, b) { return b - a; });
-        var html = "";
-        years.forEach(function (y) {
-          var items = list.filter(function (p) { return p.year === y; });
-          html += '<section class="proj-year-group"><h2 class="year">' + esc(y) +
-            ' <span class="year-count">' + items.length + "</span></h2>" +
-            '<ul class="proj-list">' + items.map(itemHtml).join("") + "</ul></section>";
+      if (active === "current") {
+        loadCsv(SOURCES.current, function (list) {
+          if (!list.length) { mount.innerHTML = empty(); return; }
+          mount.innerHTML = list.map(function (p) {
+            return '<article class="curproj reveal">' +
+              '<h3 class="cp-title">' + esc(p.title) + "</h3>" +
+              (p.agency || p.period ? '<div class="cp-meta">' + esc([p.agency, p.period].filter(Boolean).join(" · ")) + "</div>" : "") +
+              (p.slug ? '<button type="button" class="about-morelink cp-more" data-slug="' + esc(p.slug) + '">' +
+                (lang() === "en" ? "Read more →" : "자세히 보기 →") + "</button>" : "") +
+              "</article>";
+          }).join("");
+          Array.prototype.forEach.call(mount.querySelectorAll(".cp-more"), function (b) {
+            b.addEventListener("click", function () { detailSlug = b.getAttribute("data-slug"); render(); if (history.replaceState) history.replaceState(null, "", "#current"); window.scrollTo({ top: 0, behavior: "smooth" }); });
+          });
+          if (global.LitReveal) global.LitReveal.observe(mount.querySelectorAll(".reveal"));
         });
-        var noyear = list.filter(function (p) { return !p.year; });
-        if (noyear.length) html += '<ul class="proj-list">' + noyear.map(itemHtml).join("") + "</ul>";
-        mount.innerHTML = html;
+      } else {
+        loadCsv(SOURCES.past, function (list) {
+          if (!list.length) { mount.innerHTML = empty(); return; }
+          var years = [];
+          list.forEach(function (p) { if (p.year && years.indexOf(p.year) < 0) years.push(p.year); });
+          years.sort(function (a, b) { return b - a; });
+          var html = years.map(function (y) {
+            var items = list.filter(function (p) { return p.year === y; });
+            return '<section class="proj-year-group"><h2 class="year">' + esc(y) +
+              ' <span class="year-count">' + items.length + "</span></h2><ul class=\"proj-list\">" +
+              items.map(function (p) {
+                var meta = [p.agency, p.period].filter(Boolean).join(" · ");
+                return '<li class="proj-item"><span class="pi-title">' + esc(p.title) + "</span>" +
+                  (meta ? '<span class="pi-meta">' + esc(meta) + "</span>" : "") + "</li>";
+              }).join("") + "</ul></section>";
+          }).join("");
+          mount.innerHTML = html;
+        });
+      }
+    }
+
+    function renderDetail(slug) {
+      var path = "data/" + slug + (lang() === "en" ? "" : "_ko") + ".md";
+      mount.innerHTML = '<p class="muted" style="padding:24px 0">불러오는 중…</p>';
+      var show = function (md) {
+        mount.innerHTML =
+          '<button type="button" class="proj-back">' + (lang() === "en" ? "← Back to list" : "← 목록으로") + "</button>" +
+          '<article class="md-body">' + mdToHtml(md) + "</article>";
+        mount.querySelector(".proj-back").addEventListener("click", function () {
+          detailSlug = null; render();
+        });
         if (global.LitReveal) global.LitReveal.observe(mount.querySelectorAll(".reveal"));
       };
+      if (mdCache[path]) { show(mdCache[path]); return; }
+      fetch(path, { cache: "no-store" }).then(function (r) {
+        if (!r.ok) throw new Error(path);
+        return r.text();
+      }).then(function (t) { mdCache[path] = t; show(t); })
+        .catch(function () { mount.innerHTML = '<button type="button" class="proj-back">← 목록으로</button>' +
+          '<div class="error">상세 내용을 불러오지 못했습니다: ' + esc(path) + "</div>";
+          mount.querySelector(".proj-back").addEventListener("click", function () { detailSlug = null; render(); }); });
+    }
 
-      if (cache[active]) { done(src.rows(cache[active])); return; }
-      fetch(src.csv, { cache: "no-store" })
-        .then(function (r) { return r.ok ? r.text() : ""; })
-        .then(function (t) {
-          cache[active] = t ? P._rowsToObjects(P._parseCSV(t)) : [];
-          done(src.rows(cache[active]));
-        })
-        .catch(function () { done([]); });
+    function empty() {
+      return '<p class="muted" style="padding:28px 0">' +
+        (lang() === "en" ? "No projects yet." : "등록된 과제가 없습니다.") + "</p>";
     }
   }
 

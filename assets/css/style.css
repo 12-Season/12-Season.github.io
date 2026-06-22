@@ -330,6 +330,31 @@ a:hover { text-decoration: underline; }
   font-size: clamp(1.08rem, 1.9vw, 1.3rem); line-height: 1.5; }
 .pi-meta { display: block; color: var(--muted); font-size: .92rem; margin-top: 5px; }
 
+/* Current 과제 카드 */
+.curproj { border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 12px;
+  padding: 20px 22px; margin: 0 0 16px; background: var(--bg); }
+.curproj:hover { box-shadow: 0 6px 22px rgba(0,0,0,.06); }
+.cp-title { margin: 0 0 .35em; font-size: clamp(1.15rem, 2.1vw, 1.45rem); color: var(--accent-dark); line-height: 1.4; }
+.cp-meta { color: var(--accent); font-size: .9rem; margin-bottom: .6em; }
+.cp-more { background: none; border: none; cursor: pointer; padding: 0; font: inherit; }
+
+/* Current 상세 (md 전문) */
+.proj-back { font: inherit; cursor: pointer; background: var(--soft); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 14px; color: var(--accent); font-weight: 600; margin: 4px 0 20px; }
+.proj-back:hover { border-color: var(--accent); }
+.md-body { color: #1f2937; line-height: 1.75; }
+.md-body h1 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); color: var(--accent-dark); margin: .2em 0 .3em; line-height: 1.25; }
+.md-body h2 { font-size: clamp(1.25rem, 2.4vw, 1.6rem); color: var(--accent-dark); margin: 1.5em 0 .4em;
+  padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+.md-body h3 { font-size: 1.15rem; margin: 1.2em 0 .3em; }
+.md-body p { margin: .6em 0; }
+.md-body ul { margin: .5em 0 1em; padding-left: 1.3em; }
+.md-body li { margin: .35em 0; line-height: 1.65; }
+.md-body em { color: var(--muted); }
+.md-body strong { color: var(--accent-dark); }
+.md-body img { max-width: 100%; height: auto; border-radius: 10px; margin: 14px 0;
+  border: 1px solid var(--line); }
+
 /* ---------- contact page ---------- */
 .contact-sub { color: var(--phead); font-size: 1.15rem; font-weight: 700; margin: 1.2em 0 .25em; }
 .contact-ul { list-style: disc; padding-left: 1.3em; margin: .2em 0 0; }
