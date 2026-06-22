@@ -321,7 +321,8 @@ a:hover { text-decoration: underline; }
 .research-area li { color: #3a4452; font-size: clamp(.98rem, 1.5vw, 1.1rem); margin: .35em 0; line-height: 1.55; }
 .ra-fig { display: block; width: 100%; max-width: 760px; height: auto; margin: 16px auto 2px;
   border: 1.5px solid #9aa7b8; border-radius: 10px; background: #fff; padding: 10px;
-  box-shadow: 0 4px 18px rgba(0,0,0,.07); }
+  box-shadow: 0 4px 18px rgba(0,0,0,.07); cursor: zoom-in; transition: box-shadow .15s; }
+.ra-fig:hover { box-shadow: 0 8px 26px rgba(0,0,0,.14); }
 @media (max-width: 600px) { .research-area { padding: 18px 18px; } }
 
 /* ---------- research projects (간결한 연도별 목록) ---------- */

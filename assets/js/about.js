@@ -50,3 +50,42 @@
   else load();
 })(window);
 /* 패널 스크롤 애니메이션은 reveal.js 로 일반화되었습니다 (.panel .panel-content). */
+
+/* ===== 연구 분야 figure 클릭 시 크게 보기 (라이트박스) ===== */
+(function (global) {
+  function setup() {
+    var imgs = document.querySelectorAll(".ra-fig");
+    if (!imgs.length) return;
+    var lb;
+    function ensure() {
+      if (lb) return;
+      lb = document.createElement("div");
+      lb.className = "lightbox";
+      lb.setAttribute("aria-hidden", "true");
+      lb.innerHTML =
+        '<button class="lb-close" type="button" aria-label="닫기">&times;</button>' +
+        '<figure class="lb-figure"><img class="lb-img" alt=""></figure>';
+      document.body.appendChild(lb);
+      lb.querySelector(".lb-close").addEventListener("click", close);
+      lb.addEventListener("click", function (e) { if (e.target === lb) close(); });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && lb.getAttribute("aria-hidden") === "false") close();
+      });
+    }
+    function open(src, alt) {
+      ensure();
+      var im = lb.querySelector(".lb-img"); im.src = src; im.alt = alt || "";
+      lb.setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden";
+    }
+    function close() {
+      if (!lb) return;
+      lb.setAttribute("aria-hidden", "true"); document.body.style.overflow = "";
+      lb.querySelector(".lb-img").src = "";
+    }
+    Array.prototype.forEach.call(imgs, function (img) {
+      img.addEventListener("click", function () { open(img.src, img.alt); });
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", setup);
+  else setup();
+})(window);
