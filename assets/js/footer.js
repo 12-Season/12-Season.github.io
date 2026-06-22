@@ -3,24 +3,25 @@
    여기 한 곳만 고치면 전 페이지 푸터에 반영됩니다.
    ========================================================================== */
 (function (global) {
-  // ▼ 외부 링크 — 값이 있으면 표시, 비우면 숨김. (Scholar/GitHub 는 URL 생기면 입력)
+  // ▼ 외부 링크 — 값이 있으면 표시, 비우면 숨김.
   var LINKS = {
     email: "hcpark@kaist.ac.kr",
-    kaist: "https://www.kaist.ac.kr",
-    ee: "https://ee.kaist.ac.kr",
-    scholar: "",   // 지도교수 Google Scholar URL
-    github: "",    // 연구실 GitHub URL
+    coe: "https://engineering.kaist.ac.kr/",   // 공과대학
+    ee: "https://ee.kaist.ac.kr/",             // 전기및전자공학부
+    scholar: "https://scholar.google.com/citations?user=j9EJaOsAAAAJ&hl=en", // 지도교수
+    github: "",                                // 연구실 GitHub URL (있으면 입력)
   };
-  var V = "?v=20260620zx";
+  var V = "?v=20260620zy";
 
   var f = document.getElementById("siteFooter");
   if (!f) return;
 
-  function logoLink(file, alt, cls, href) {
-    var im = '<img class="footer-logo" src="assets/' + file + V + '" alt="' + alt + '">';
-    var c = cls ? ' class="' + cls + '"' : "";
+  // langCls: 언어 표시 제어(<a>에), sizeCls: KAIST 글자 크기 통일용 높이(<img>에)
+  function logoLink(file, alt, langCls, sizeCls, href) {
+    var im = '<img class="footer-logo ' + sizeCls + '" src="assets/' + file + V + '" alt="' + alt + '">';
+    var c = langCls ? ' class="' + langCls + '"' : "";
     return href ? "<a" + c + ' href="' + href + '" target="_blank" rel="noopener">' + im + "</a>"
-                : (cls ? '<span class="' + cls + '">' + im + "</span>" : im);
+                : "<span" + c + ">" + im + "</span>";
   }
 
   var quick = [
@@ -33,16 +34,14 @@
   if (LINKS.email) ext.push('<a href="mailto:' + LINKS.email + '">' + LINKS.email + "</a>");
   if (LINKS.scholar) ext.push('<a href="' + LINKS.scholar + '" target="_blank" rel="noopener">Google Scholar</a>');
   if (LINKS.github) ext.push('<a href="' + LINKS.github + '" target="_blank" rel="noopener">GitHub</a>');
-  if (LINKS.ee) ext.push('<a href="' + LINKS.ee + '" target="_blank" rel="noopener" data-ko="전기및전자공학부" data-en="School of EE">전기및전자공학부</a>');
 
   f.innerHTML =
     '<div class="wrap footer-grid">' +
       '<div class="f-logos">' +
-        logoLink("kaist-logo.png", "KAIST", "", LINKS.kaist) +
-        logoLink("Kaist_COE_k2_RGB.png", "KAIST 공과대학", "lang-ko", LINKS.kaist) +
-        logoLink("Kaist_DEE_k2_RGB.png", "KAIST 전기및전자공학부", "lang-ko", LINKS.ee) +
-        logoLink("Kaist_COE_e2_RGB.png", "KAIST College of Engineering", "lang-en", LINKS.kaist) +
-        logoLink("Kaist_DEE_e3_RGB.png", "KAIST School of EE", "lang-en", LINKS.ee) +
+        logoLink("Kaist_COE_k2_RGB.png", "KAIST 공과대학", "lang-ko", "fl-coe-k", LINKS.coe) +
+        logoLink("Kaist_DEE_k2_RGB.png", "KAIST 전기및전자공학부", "lang-ko", "fl-dee-k", LINKS.ee) +
+        logoLink("Kaist_COE_e2_RGB.png", "KAIST College of Engineering", "lang-en", "fl-coe-e", LINKS.coe) +
+        logoLink("Kaist_DEE_e3_RGB.png", "KAIST School of Electrical Engineering", "lang-en", "fl-dee-e", LINKS.ee) +
       "</div>" +
       '<nav class="f-links" aria-label="quick links">' +
         quick.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + "</a>"; }).join("") +

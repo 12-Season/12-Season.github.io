@@ -847,9 +847,14 @@ a:hover { text-decoration: underline; }
 }
 /* 공용 푸터 (footer.js 가 주입) */
 .footer-grid { display: flex; flex-direction: column; gap: 14px; }
-.f-logos { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.footer-logo { height: 26px; width: auto; display: block; opacity: .9; }
+.f-logos { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.footer-logo { width: auto; display: block; opacity: .9; }
 .f-logos a:hover .footer-logo { opacity: 1; }
+/* 로고마다 여백이 달라 'KAIST' 글자 크기가 같아지도록 높이를 개별 보정 */
+.fl-coe-k { height: 31px; }
+.fl-dee-k { height: 25px; }
+.fl-coe-e { height: 26px; }
+.fl-dee-e { height: 25px; }
 .f-links { display: flex; flex-wrap: wrap; gap: 6px 18px; padding-top: 4px; border-top: 1px solid var(--line); }
 .f-links a { color: var(--fg); font-weight: 500; }
 .f-contact { color: var(--muted); line-height: 1.7; }
