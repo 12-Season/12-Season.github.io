@@ -324,14 +324,11 @@ a:hover { text-decoration: underline; }
 /* ---------- research projects (간결한 연도별 목록) ---------- */
 .proj-year-group { margin-bottom: 6px; }
 .proj-list { list-style: none; margin: 0 0 18px; padding: 0; }
-.proj-item {
-  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
-  gap: 2px 16px; padding: 11px 4px; border-bottom: 1px solid var(--line);
-}
+.proj-item { display: block; padding: 16px 6px; border-bottom: 1px solid var(--line); }
 .proj-item:hover { background: var(--soft); }
-.pi-title { font-weight: 600; color: var(--fg); flex: 1; min-width: 55%; line-height: 1.5; }
-.pi-meta { color: var(--muted); font-size: .88rem; white-space: nowrap; }
-@media (max-width: 600px) { .pi-meta { white-space: normal; } }
+.pi-title { display: block; font-weight: 600; color: var(--fg);
+  font-size: clamp(1.08rem, 1.9vw, 1.3rem); line-height: 1.5; }
+.pi-meta { display: block; color: var(--muted); font-size: .92rem; margin-top: 5px; }
 
 /* ---------- contact page ---------- */
 .contact-sub { color: var(--phead); font-size: 1.15rem; font-weight: 700; margin: 1.2em 0 .25em; }
