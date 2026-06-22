@@ -393,6 +393,7 @@ a:hover { text-decoration: underline; }
 .sem-weeks th, .sem-weeks td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .sem-weeks th { color: var(--accent-dark); font-weight: 700; white-space: nowrap; background: var(--soft); }
 .sem-weeks td:first-child, .sem-weeks th:first-child { width: 56px; text-align: center; }
+.sem-weeks td:nth-child(2), .sem-weeks th:nth-child(2) { white-space: nowrap; }
 .sem-note { color: var(--muted); font-size: .88rem; }
 
 /* ---------- contact page ---------- */
