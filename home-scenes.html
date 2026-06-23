@@ -163,39 +163,32 @@ SCENES["beam-lobe"]=function(){
   }};
 };
 
-/* 2b 위상배열 파동: 화면을 꽉 채우는 격자(비율 자동). 점·선 사이 여백, 흰색이 아닌 색조의 밝기 그라데이션 */
+/* 2b 위상배열 파동: 화면을 꽉 채우는 연속 파동 표면(메시). 배경과 대비되는 강조색으로 튀게 */
 SCENES["beam-wave"]=function(){
-  var cols=30,rows=16,N=cols*rows;
+  var cols=46,rows=26,N=cols*rows;
   var ci=new Int16Array(N),ri=new Int16Array(N),sx=[],sy=[];
   for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){var i=r*cols+c;ci[i]=c;ri[i]=r;
     var a=0.1+Math.random()*(Math.PI-0.2),rr=6+Math.random()*4;sx.push(Math.cos(a)*rr);sy.push(Math.sin(a)*rr);}
   var M=5;
-  var edges=[];for(var r2=0;r2<rows;r2++)for(var c2=0;c2<cols;c2++){var id=r2*cols+c2;if(c2<cols-1)edges.push(id,id+1);if(r2<rows-1)edges.push(id,id+cols);}
-  var E=edges.length/2;
-  var lp=new Float32Array(E*6),lc=new Float32Array(E*6),lgeo=new THREE.BufferGeometry();
-  lgeo.setAttribute("position",new THREE.BufferAttribute(lp,3));lgeo.setAttribute("color",new THREE.BufferAttribute(lc,3));
-  group.add(new THREE.LineSegments(lgeo,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:.95,depthWrite:false,blending:THREE.AdditiveBlending})));
-  var P=layerP(N,null,.07,.95,true);
-  var npx=new Float32Array(N),npy=new Float32Array(N),npz=new Float32Array(N),nbr=new Float32Array(N);
-  var base=col(pal.line), GAP=0.22, TAN=Math.tan(55*Math.PI/180/2);
+  var idx=[];for(var r2=0;r2<rows-1;r2++)for(var c2=0;c2<cols-1;c2++){var a=r2*cols+c2,b=a+1,cc=a+cols,dd=cc+1;idx.push(a,b,dd,a,dd,cc);}
+  var pos=new Float32Array(N*3),colr=new Float32Array(N*3),geo=new THREE.BufferGeometry();
+  geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
+  geo.setAttribute("color",new THREE.BufferAttribute(colr,3));
+  geo.setIndex(idx);
+  var mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.96,depthWrite:false}));
+  mesh.frustumCulled=false; group.add(mesh);
+  var base=col(pal.c2), TAN=Math.tan(55*Math.PI/180/2);   // c2 = 배경과 대비되는 강조색
   return {update:function(t){var m=mouseWorld(t);var grad=m.mx*2.6;
-    var hH=TAN*camera.position.z*1.06, hW=hH*camera.aspect;   // 화면을 꽉 채우는 범위
+    var hH=TAN*camera.position.z*1.08, hW=hH*camera.aspect;
     var conv=Math.min(t/1.6,1),ec=1-Math.pow(1-conv,3);
     var ex=[];for(var e=0;e<M;e++)ex.push((e-(M-1)/2)*(hW*0.45)); var ey=-hH;
     for(var i=0;i<N;i++){var gx=-hW+(ci[i]/(cols-1))*2*hW, gy=-hH+(ri[i]/(rows-1))*2*hH;
-      var s=0;for(var e2=0;e2<M;e2++){var dx=gx-ex[e2],dy=gy-ey,d=Math.sqrt(dx*dx+dy*dy);s+=Math.sin(d*3.4-t*4+e2*grad);}
+      var s=0;for(var e2=0;e2<M;e2++){var dx=gx-ex[e2],dy=gy-ey,d=Math.sqrt(dx*dx+dy*dy);s+=Math.sin(d*3.2-t*3.6+e2*grad);}
       var v=(s/M+1)/2; v*=v;
-      npx[i]=sx[i]+(gx-sx[i])*ec; npy[i]=sy[i]+(gy-sy[i])*ec; npz[i]=(v-0.5)*0.9*ec;
-      nbr[i]=0.45+0.45*v;                       // 같은 색조 내 밝기 그라데이션
-      P.pos[i*3]=npx[i];P.pos[i*3+1]=npy[i];P.pos[i*3+2]=npz[i];
-      var pb=0.6+0.4*v;P.colArr[i*3]=base.r*pb;P.colArr[i*3+1]=base.g*pb;P.colArr[i*3+2]=base.b*pb;}
-    P.flush();
-    for(var k=0;k<E;k++){var a=edges[k*2],b2=edges[k*2+1],o=k*6;
-      var ax=npx[a],ay=npy[a],az=npz[a],bx=npx[b2],by=npy[b2],bz=npz[b2],va=nbr[a],vb=nbr[b2];
-      lp[o]=ax+(bx-ax)*GAP;lp[o+1]=ay+(by-ay)*GAP;lp[o+2]=az+(bz-az)*GAP;
-      lp[o+3]=bx-(bx-ax)*GAP;lp[o+4]=by-(by-ay)*GAP;lp[o+5]=bz-(bz-az)*GAP;
-      lc[o]=base.r*va;lc[o+1]=base.g*va;lc[o+2]=base.b*va;lc[o+3]=base.r*vb;lc[o+4]=base.g*vb;lc[o+5]=base.b*vb;}
-    lgeo.attributes.position.needsUpdate=true;lgeo.attributes.color.needsUpdate=true;}};
+      pos[i*3]=sx[i]+(gx-sx[i])*ec; pos[i*3+1]=sy[i]+(gy-sy[i])*ec; pos[i*3+2]=(v-0.5)*1.0*ec;
+      var b=0.32+0.68*v;                          // 골=어두운 강조색, 마루=밝은 강조색(음영)
+      colr[i*3]=base.r*b;colr[i*3+1]=base.g*b;colr[i*3+2]=base.b*b;}
+    geo.attributes.position.needsUpdate=true;geo.attributes.color.needsUpdate=true;}};
 };
 
 /* 11a ISAC 추적+데이터 */
