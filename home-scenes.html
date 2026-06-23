@@ -178,14 +178,10 @@ SCENES["beam-lobe"]=function(){
   var IN=90, isx=[],isy=[];
   for(var i2=0;i2<IN;i2++){var a=0.15+Math.random()*(Math.PI-0.3),rr=5+Math.random()*3.5;isx.push(base[0]+Math.cos(a)*rr);isy.push(base[1]+Math.sin(a)*rr);}
   var indot=layerP(IN,pal.dot,.1,1);
-  // 송신 빔: 가운데 밝은 직선(코어) + 은은하게 퍼지는 광채(콘)
+  // 송신 빔: 밝은 코어 직선 + 얇은 광채(가산 라인) — 어두워지는 영역 없음
   var core=layerL(1,pal.c1,0);
-  var coneN=28, cv=coneN*3, c1col=col(pal.c1);
-  var cgeo=new THREE.BufferGeometry();
-  var cpos=new Float32Array(cv*3), ccol=new Float32Array(cv*3);
-  cgeo.setAttribute("position",new THREE.BufferAttribute(cpos,3));
-  cgeo.setAttribute("color",new THREE.BufferAttribute(ccol,3));
-  group.add(new THREE.Mesh(cgeo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity:1,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide})));
+  var GI=16, glowIn=layerL(GI,pal.c1,0);
+  var GO=16, glowOut=layerL(GO,pal.c1,0);
   var phi=0, delayT=0, slewing=false, last=0;
   return {update:function(t){var dt=Math.min(Math.max(t-last,0.001),0.05);last=t;var m=mouseWorld(t);
     // 목표 각(수직=broadside 기준), -90~90°로 제한
@@ -208,23 +204,15 @@ SCENES["beam-lobe"]=function(){
       SP.pos[k2*6]=base[0];SP.pos[k2*6+1]=base[1];SP.pos[k2*6+2]=0;SP.pos[k2*6+3]=bx;SP.pos[k2*6+4]=by;SP.pos[k2*6+5]=0;
       OUT.pos[k2*6]=prevx;OUT.pos[k2*6+1]=prevy;OUT.pos[k2*6+2]=0;OUT.pos[k2*6+3]=bx;OUT.pos[k2*6+4]=by;OUT.pos[k2*6+5]=0;prevx=bx;prevy=by;}
     SP.mat.opacity=0.12*lobeOp;OUT.mat.opacity=0.55*lobeOp;SP.flush();OUT.flush();
-    // 송신: 코어 직선 + 광채 콘 (은은하게 퍼짐)
-    var L=3.7, spread=0.17, pulse=0.85+0.15*Math.sin(t*3);
+    // 송신: 밝은 코어 + 얇은 광채 (가산 라인만 → 검정 영역 없음)
+    var L=3.7, pulse=0.9+0.1*Math.sin(t*3);
     var tipx=base[0]+Math.cos(thetaMain)*L, tipy=base[1]+Math.sin(thetaMain)*L;
-    core.mat.opacity=0.9*lobeOp;
+    core.mat.opacity=1.0*lobeOp;
     core.pos[0]=base[0];core.pos[1]=base[1];core.pos[2]=0;core.pos[3]=tipx;core.pos[4]=tipy;core.pos[5]=0;core.count(1);core.flush();
-    for(var s=0;s<coneN;s++){var o0=((s/coneN)-0.5)*2*spread,o1=(((s+1)/coneN)-0.5)*2*spread;
-      var a0=thetaMain+o0,a1=thetaMain+o1,ci=s*9;
-      cpos[ci]=base[0];cpos[ci+1]=base[1];cpos[ci+2]=0;
-      cpos[ci+3]=base[0]+Math.cos(a0)*L;cpos[ci+4]=base[1]+Math.sin(a0)*L;cpos[ci+5]=0;
-      cpos[ci+6]=base[0]+Math.cos(a1)*L;cpos[ci+7]=base[1]+Math.sin(a1)*L;cpos[ci+8]=0;
-      var apexB=0.55*lobeOp*pulse;
-      var w0=Math.pow(Math.cos((o0/spread)*1.5708),2)*0.4*lobeOp*pulse;
-      var w1=Math.pow(Math.cos((o1/spread)*1.5708),2)*0.4*lobeOp*pulse;
-      ccol[ci]=c1col.r*apexB;ccol[ci+1]=c1col.g*apexB;ccol[ci+2]=c1col.b*apexB;
-      ccol[ci+3]=c1col.r*w0;ccol[ci+4]=c1col.g*w0;ccol[ci+5]=c1col.b*w0;
-      ccol[ci+6]=c1col.r*w1;ccol[ci+7]=c1col.g*w1;ccol[ci+8]=c1col.b*w1;}
-    cgeo.attributes.position.needsUpdate=true;cgeo.attributes.color.needsUpdate=true;
+    function fan(layer,n,half){for(var s=0;s<n;s++){var off=((s/(n-1))-0.5)*2*half,a=thetaMain+off,o=s*6;
+      layer.pos[o]=base[0];layer.pos[o+1]=base[1];layer.pos[o+2]=0;layer.pos[o+3]=base[0]+Math.cos(a)*L;layer.pos[o+4]=base[1]+Math.sin(a)*L;layer.pos[o+5]=0;}layer.count(n);layer.flush();}
+    glowIn.mat.opacity=0.30*lobeOp*pulse; fan(glowIn,GI,0.03);   // 얇은 코어 광채
+    glowOut.mat.opacity=0.10*lobeOp*pulse; fan(glowOut,GO,0.075); // 바깥 은은한 번짐
   }};
 };
 
