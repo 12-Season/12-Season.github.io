@@ -300,26 +300,22 @@
     io.observe(hero);
     if(toplogo) setTimeout(function(){ toplogo.classList.add('in'); }, 550); // 진입 시 로고 천천히 등장
   })();
-  /* 히어로 배경: 마우스를 따라오는 동심원 리플 (인터랙티브) */
+  /* 히어로 배경: 동심원 리플 — 화면 우측·'합류하기' 버튼 높이에 고정 */
   (function(){
     var canvas=document.getElementById('v3canvas'), ctx=canvas.getContext('2d');
     var cs=getComputedStyle(document.documentElement);
     function h2(h){h=h.replace('#','').trim();return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
     var rgb=h2((cs.getPropertyValue('--header-active-bg')||'#bde8f5').trim()); // 계절의 밝은 톤
-    var hero=document.querySelector('.v3hero'), W,H,DPR;
-    function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=canvas.clientWidth;H=canvas.clientHeight;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);}
+    var hero=document.querySelector('.v3hero'), cta=document.querySelector('.v3-cta'), W,H,DPR, cx, cy;
+    function recenter(){ cx=W*0.74; var hr=hero.getBoundingClientRect();
+      if(cta){var cr=cta.getBoundingClientRect(); cy=(cr.top-hr.top)+cr.height/2;} else { cy=H*0.62; } }
+    function resize(){DPR=Math.min(window.devicePixelRatio||1,2);W=canvas.clientWidth;H=canvas.clientHeight;canvas.width=W*DPR;canvas.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);recenter();}
     window.addEventListener('resize',resize);
-    var cx,cy,tx,ty,have=false;
-    window.addEventListener('pointermove',function(e){var r=hero.getBoundingClientRect();tx=e.clientX-r.left;ty=e.clientY-r.top;have=true;});
-    window.addEventListener('pointerleave',function(){have=false;});
     var t0=null, rings=10;
     function frame(ts){if(t0===null)t0=ts;var t=(ts-t0)/1000;
-      if(cx===undefined){cx=W*0.32;cy=H*0.52;tx=cx;ty=cy;}
-      if(!have){tx=W*0.32+Math.sin(t*0.5)*W*0.05;ty=H*0.52+Math.cos(t*0.4)*H*0.07;}
-      cx+=(tx-cx)*0.07; cy+=(ty-cy)*0.07;
       ctx.clearRect(0,0,W,H);
       ctx.globalCompositeOperation='lighter';
-      var maxR=Math.hypot(W,H)*0.8, sp=0.14;
+      var maxR=Math.hypot(W,H)*0.95, sp=0.14;
       for(var i=0;i<rings;i++){var frac=((t*sp+i/rings)%1), rad=frac*maxR, a=(1-frac);
         ctx.beginPath(); ctx.arc(cx,cy,rad,0,Math.PI*2);
         ctx.strokeStyle='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+(a*0.42).toFixed(3)+')';
@@ -327,7 +323,8 @@
       requestAnimationFrame(frame);
     }
     resize(); requestAnimationFrame(frame);
-    setTimeout(function(){ canvas.style.opacity='1'; }, 1000); // 동심원은 조금 더 빨리 시작, 천천히 떠오름(2.4s)
+    setTimeout(recenter, 2300); // 인트로(글자 등장) 후 CTA 위치로 보정
+    setTimeout(function(){ canvas.style.opacity='1'; }, 1000);
   })();
   </script>
 </body>
