@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hero 씬 후보 (프리뷰) — LIT @ KAIST</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" />
+<style>
+  *{box-sizing:border-box} html,body{margin:0;height:100%}
+  body{font-family:"Space Grotesk",-apple-system,"Apple SD Gothic Neo",sans-serif;color:#fff;overflow:hidden}
+  #stage{position:fixed;inset:0;transition:background .6s ease}
+  #c{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .center{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;padding:0 24px}
+  .eyebrow{letter-spacing:.22em;text-transform:uppercase;font-size:.8rem;opacity:.85;margin:0 0 14px}
+  .title{font-weight:700;font-size:clamp(2rem,5.5vw,4rem);line-height:1.08;margin:0;text-shadow:0 2px 30px rgba(0,0,0,.45)}
+  .sub{font-size:clamp(.95rem,1.8vw,1.2rem);opacity:.9;margin:18px 0 0}
+  /* 컨트롤 */
+  .panel{position:fixed;z-index:5;background:rgba(8,16,30,.55);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 12px;font-size:.78rem}
+  #scenes{left:14px;top:14px;max-width:230px}
+  #pals{right:14px;top:14px}
+  .panel b{display:block;opacity:.7;font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;margin:0 0 6px}
+  .panel .grp{margin-bottom:8px}
+  button.opt{font:inherit;cursor:pointer;color:#fff;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:5px 10px;margin:3px 3px 0 0}
+  button.opt:hover{background:rgba(255,255,255,.2)}
+  button.opt.on{background:#fff;color:#0a2240;border-color:#fff;font-weight:700}
+  .hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:5;font-size:.72rem;opacity:.6;letter-spacing:.08em}
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="c"></canvas></div>
+<div class="center">
+  <p class="eyebrow">Laboratory for Information Transmission</p>
+  <h1 class="title">정보전송연구실 · LIT @ KAIST</h1>
+  <p class="sub" id="sublabel">Communication · Sensing · Deep Learning</p>
+</div>
+
+<div class="panel" id="scenes">
+  <div class="grp"><b>통신 (Communication)</b>
+    <button class="opt" data-s="net-packets">1a 신호 네트워크</button>
+    <button class="opt" data-s="net-pulse">1b 메시 펄스</button>
+    <button class="opt" data-s="beam-lobe">2a 빔포밍 로브</button>
+    <button class="opt" data-s="beam-wave">2b 위상배열 파동</button>
+  </div>
+  <div class="grp"><b>융합 ISAC</b>
+    <button class="opt" data-s="isac-track">11a 추적+데이터</button>
+    <button class="opt" data-s="isac-dual">11b 레이더 스윕</button>
+  </div>
+  <div class="grp"><b>토큰 / 구</b>
+    <button class="opt" data-s="token-sphere">12a 토큰 구</button>
+    <button class="opt" data-s="token-shells">12b 궤도 토큰</button>
+  </div>
+</div>
+<div class="panel" id="pals">
+  <b>팔레트 (계절)</b>
+  <button class="opt" data-p="navy">남색</button>
+  <button class="opt" data-p="spring">봄</button>
+  <button class="opt" data-p="summer">여름</button>
+  <button class="opt" data-p="autumn">가을</button>
+  <button class="opt" data-p="winter">겨울</button>
+</div>
+<div class="hint">마우스를 움직여 보세요 · 씬/팔레트 버튼으로 비교</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+if(!window.THREE) return;
+var canvas=document.getElementById("c"), stage=document.getElementById("stage");
+var renderer=new THREE.WebGLRenderer({canvas:canvas,alpha:true,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+var scene=new THREE.Scene(), group=new THREE.Group(); scene.add(group);
+var camera=new THREE.PerspectiveCamera(55,1,0.1,100); camera.position.z=5;
+
+/* ---------- 팔레트 (계절별 색 조합) ---------- */
+var PALS={
+  navy:   {bg:["#0a4a86","#073f78","#04203f"], dot:"#dae7fb", line:"#6ea3df", c1:"#7fe0c0", c2:"#ffb86b"},
+  spring: {bg:["#4f9a6e","#2f7a63","#123a36"], dot:"#eafbe2", line:"#9fd9b0", c1:"#ffd2e8", c2:"#ffe79a"},
+  summer: {bg:["#0f86a6","#0a5f86","#03283f"], dot:"#defaff", line:"#5fd0e6", c1:"#ffe27a", c2:"#ff9ec4"},
+  autumn: {bg:["#b5611f","#7f3a26","#2c1812"], dot:"#ffe9c8", line:"#e0a05f", c1:"#ffd27a", c2:"#9fd0a0"},
+  winter: {bg:["#5a7fb0","#33558a","#0e1e36"], dot:"#eef6ff", line:"#a9cdec", c1:"#bfe9ff", c2:"#e7d9ff"}
+};
+var palName="navy", pal=PALS.navy;
+function col(h){return new THREE.Color(h);}
+function applyBg(){ stage.style.background="radial-gradient(120% 120% at 70% 18%,"+pal.bg[0]+" 0%,"+pal.bg[1]+" 45%,"+pal.bg[2]+" 100%)"; }
+
+/* ---------- 공통: 원형 점 텍스처, 마우스, 헬퍼 ---------- */
+var circleTex=(function(){var c=document.createElement("canvas");c.width=c.height=64;var g=c.getContext("2d");
+  var gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,"#fff");gr.addColorStop(.35,"rgba(255,255,255,.95)");gr.addColorStop(1,"rgba(255,255,255,0)");
+  g.fillStyle=gr;g.beginPath();g.arc(32,32,32,0,7);g.fill();var t=new THREE.Texture(c);t.needsUpdate=true;return t;})();
+var mouse={x:99,y:99,on:false};
+window.addEventListener("pointermove",function(e){var r=canvas.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1; mouse.y=-((e.clientY-r.top)/r.height)*2+1; mouse.on=true;});
+window.addEventListener("pointerleave",function(){mouse.on=false;});
+var _v=new THREE.Vector3();
+function mouseWorld(t){ // 마우스 → z=0 평면 좌표 (없으면 리사주 자동 이동)
+  if(!mouse.on){ return {x:Math.sin(t*0.6)*2.0, y:Math.cos(t*0.47)*1.1, mx:Math.sin(t*0.6)*0.5, my:Math.cos(t*0.47)*0.4}; }
+  _v.set(mouse.x,mouse.y,0.5).unproject(camera); var dir=_v.sub(camera.position).normalize();
+  var d=-camera.position.z/dir.z; var w=camera.position.clone().add(dir.multiplyScalar(d));
+  return {x:w.x,y:w.y,mx:mouse.x,my:mouse.y};
+}
+function layerP(max,color,size,opacity,vc){var pos=new Float32Array(max*3);var g=new THREE.BufferGeometry();
+  g.setAttribute("position",new THREE.BufferAttribute(pos,3));var colArr=null;
+  if(vc){colArr=new Float32Array(max*3);g.setAttribute("color",new THREE.BufferAttribute(colArr,3));}
+  var m=new THREE.PointsMaterial({size:size,map:circleTex,transparent:true,opacity:opacity,sizeAttenuation:true,
+    depthWrite:false,blending:THREE.AdditiveBlending});
+  if(vc){m.vertexColors=true;} else {m.color=col(color);}
+  var o=new THREE.Points(g,m);group.add(o);
+  return {pos:pos,colArr:colArr,g:g,count:function(n){g.setDrawRange(0,n);},flush:function(){g.attributes.position.needsUpdate=true;if(colArr)g.attributes.color.needsUpdate=true;}};}
+function layerL(maxSeg,color,opacity){var pos=new Float32Array(maxSeg*6);var g=new THREE.BufferGeometry();
+  g.setAttribute("position",new THREE.BufferAttribute(pos,3));
+  var o=new THREE.LineSegments(g,new THREE.LineBasicMaterial({color:col(color),transparent:true,opacity:opacity,depthWrite:false,blending:THREE.AdditiveBlending}));
+  group.add(o);return {pos:pos,g:g,count:function(n){g.setDrawRange(0,n*2);},flush:function(){g.attributes.position.needsUpdate=true;}};}
+function clearGroup(){for(var i=group.children.length-1;i>=0;i--){var o=group.children[i];if(o.geometry)o.geometry.dispose();group.remove(o);}}
+group.rotation.set(0,0,0);
+
+/* ============================ 씬들 ============================ */
+var SCENES={};
+
+/* 12a 토큰 구 */
+SCENES["token-sphere"]=function(){
+  var N=340,R=1.7,GA=Math.PI*(3-Math.sqrt(5));
+  var base=new Float32Array(N*3),spiral=new Float32Array(N*3),disp=new Float32Array(N*3);
+  for(var i=0;i<N;i++){var y=1-(i/(N-1))*2,r=Math.sqrt(1-y*y),th=i*GA;
+    base[i*3]=Math.cos(th)*r*R;base[i*3+1]=y*R;base[i*3+2]=Math.sin(th)*r*R;
+    var a=i*0.5,rd=0.15+(i/N)*3;spiral[i*3]=Math.cos(a)*rd;spiral[i*3+1]=(i/N-.5)*5;spiral[i*3+2]=Math.sin(a)*rd;}
+  var edges=[],cosT=Math.cos(0.34);
+  for(var p=0;p<N;p++)for(var q=p+1;q<N;q++){var d=(base[p*3]*base[q*3]+base[p*3+1]*base[q*3+1]+base[p*3+2]*base[q*3+2])/(R*R);if(d>cosT)edges.push(p,q);}
+  var P=layerP(N,pal.dot,.09,.95),L=layerL(edges.length,pal.line,.18);
+  var T=70,tok=[];for(var k=0;k<T;k++)tok.push({e:(Math.random()*edges.length/2|0)*2,t:Math.random(),s:.004+Math.random()*.01});
+  var TK=layerP(T,pal.c1,.16,1);
+  group.rotation.set(0,0,0);
+  return {update:function(t){var ip=Math.min(t/2.2,1);ip=1-Math.pow(1-ip,3);
+    var ang=t*0.16,cy=Math.cos(.35),sy=Math.sin(.35),ca=Math.cos(ang),sa=Math.sin(ang);var m=mouseWorld(t);
+    for(var i=0;i<N;i++){var x=spiral[i*3]+(base[i*3]-spiral[i*3])*ip,y=spiral[i*3+1]+(base[i*3+1]-spiral[i*3+1])*ip,z=spiral[i*3+2]+(base[i*3+2]-spiral[i*3+2])*ip;
+      var y1=y*cy-z*sy,z1=y*sy+z*cy,xr=x*ca+z1*sa,zr=-x*sa+z1*ca,yr=y1;
+      var tx=0,ty=0,tz=0;_v.set(xr,yr,zr).project(camera);var dx=_v.x-m.mx,dy=_v.y-m.my,dd=Math.hypot(dx,dy);
+      if(dd<.22){var f=1-dd/.22;f*=f;var inv=dd>1e-4?1/dd:0;tx=dx*inv*.55*f;ty=dy*inv*.55*f;tz=Math.sin(t*6+i)*.08*f;}
+      disp[i*3]+=(tx-disp[i*3])*.18;disp[i*3+1]+=(ty-disp[i*3+1])*.18;disp[i*3+2]+=(tz-disp[i*3+2])*.18;
+      P.pos[i*3]=xr+disp[i*3];P.pos[i*3+1]=yr+disp[i*3+1];P.pos[i*3+2]=zr+disp[i*3+2];}
+    P.flush();
+    for(var e=0;e<edges.length;e+=2){var a=edges[e]*3,b=edges[e+1]*3,o=e*3;
+      L.pos[o]=P.pos[a];L.pos[o+1]=P.pos[a+1];L.pos[o+2]=P.pos[a+2];L.pos[o+3]=P.pos[b];L.pos[o+4]=P.pos[b+1];L.pos[o+5]=P.pos[b+2];}
+    L.flush();
+    for(var j=0;j<T;j++){var tk=tok[j];tk.t+=tk.s;if(tk.t>1){tk.t=0;tk.e=(Math.random()*edges.length/2|0)*2;}
+      var ea=edges[tk.e]*3,eb=edges[tk.e+1]*3;TK.pos[j*3]=P.pos[ea]+(P.pos[eb]-P.pos[ea])*tk.t;
+      TK.pos[j*3+1]=P.pos[ea+1]+(P.pos[eb+1]-P.pos[ea+1])*tk.t;TK.pos[j*3+2]=P.pos[ea+2]+(P.pos[eb+2]-P.pos[ea+2])*tk.t;}
+    TK.flush();}};
+};
+
+/* 12b 궤도 토큰 (여러 회전 고리) */
+SCENES["token-shells"]=function(){
+  var rings=[{n:90,r:2.2,tx:.2,sp:.18},{n:70,r:1.55,tx:-.5,sp:-.26},{n:50,r:.95,tx:.9,sp:.4}];
+  var total=0;rings.forEach(function(R){R.a0=[];for(var i=0;i<R.n;i++)R.a0.push(i/R.n*Math.PI*2);total+=R.n;});
+  var P=layerP(total,pal.dot,.08,.92);
+  var T=24,tok=[];for(var k=0;k<T;k++)tok.push({from:rand3(),to:rand3(),t:Math.random(),s:.01+Math.random()*.02});
+  function rand3(){return {ri:Math.random()*3|0,ai:Math.random()};}
+  var TK=layerP(T,pal.c1,.16,1);
+  function ringPos(R,ang,tilt){var cx=Math.cos(ang)*R.r,cz=Math.sin(ang)*R.r,cy=0;
+    var c=Math.cos(tilt),s=Math.sin(tilt);return [cx, cy*c-cz*s, cy*s+cz*c];}
+  return {update:function(t){var m=mouseWorld(t);group.rotation.y+= ((m.mx*0.6)-group.rotation.y)*0.05; group.rotation.x+=((-m.my*0.4)-group.rotation.x)*0.05;
+    var idx=0;rings.forEach(function(R){for(var i=0;i<R.n;i++){var ang=R.a0[i]+t*R.sp;var p=ringPos(R,ang,R.tx);
+      P.pos[idx*3]=p[0];P.pos[idx*3+1]=p[1];P.pos[idx*3+2]=p[2];idx++;}});P.flush();
+    for(var k=0;k<T;k++){var tk=tok[k];tk.t+=tk.s;if(tk.t>1){tk.t=0;tk.from=tk.to;tk.to=rand3();}
+      var Ra=rings[tk.from.ri],Rb=rings[tk.to.ri];var pa=ringPos(Ra,tk.from.ai*6.28+t*Ra.sp,Ra.tx),pb=ringPos(Rb,tk.to.ai*6.28+t*Rb.sp,Rb.tx);
+      var e=tk.t*tk.t*(3-2*tk.t);TK.pos[k*3]=pa[0]+(pb[0]-pa[0])*e;TK.pos[k*3+1]=pa[1]+(pb[1]-pa[1])*e;TK.pos[k*3+2]=pa[2]+(pb[2]-pa[2])*e;}TK.flush();}};
+};
+
+/* 2a 빔포밍 로브 (마우스로 빔 조향) */
+SCENES["beam-lobe"]=function(){
+  var K=140; var SP=layerL(K,pal.c1,.12); var OUT=layerL(K,pal.line,.5);
+  var Marr=8,arr=layerP(Marr,pal.dot,.13,1); for(var i=0;i<Marr;i++){arr.pos[i*3]=(i-(Marr-1)/2)*0.22;arr.pos[i*3+1]=-1.7;arr.pos[i*3+2]=0;} arr.flush();
+  var steer=0;
+  return {update:function(t){var m=mouseWorld(t);var ta=Math.atan2(m.y+1.7,m.x);steer+=(ta-steer)*0.08;
+    var prevx=0,prevy=-1.7;
+    for(var k=0;k<K;k++){var th=(k/(K-1))*Math.PI; // 0..pi 위쪽 반평면
+      var psi=Math.PI*(Math.cos(th)-Math.cos(steer));var af=Math.abs(Math.sin(Marr*psi/2)/(Marr*Math.sin(psi/2)+1e-6));
+      var rr=0.3+af*3.2; var bx=Math.cos(th)*rr, by=-1.7+Math.sin(th)*rr;
+      // spoke (원점→경계)
+      SP.pos[k*6]=0;SP.pos[k*6+1]=-1.7;SP.pos[k*6+2]=0;SP.pos[k*6+3]=bx;SP.pos[k*6+4]=by;SP.pos[k*6+5]=0;
+      // 경계선
+      OUT.pos[k*6]=prevx;OUT.pos[k*6+1]=prevy;OUT.pos[k*6+2]=0;OUT.pos[k*6+3]=bx;OUT.pos[k*6+4]=by;OUT.pos[k*6+5]=0;prevx=bx;prevy=by;}
+    SP.flush();OUT.flush();}};
+};
+
+/* 2b 위상배열 파동 (간섭 필드) */
+SCENES["beam-wave"]=function(){
+  var cols=58,rows=32,N=cols*rows; var F=layerP(N,null,.07,.95,true);
+  var gx=[],gy=[];for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){gx.push(-3.2+ (c/(cols-1))*6.4);gy.push(-1.8+(r/(rows-1))*3.6);}
+  var M=5,ex=[];for(var e=0;e<M;e++)ex.push(-1.2+e*0.6);var ey=-1.85;
+  var base=col(pal.dot); for(var i=0;i<N;i++){F.pos[i*3]=gx[i];F.pos[i*3+1]=gy[i];}
+  return {update:function(t){var m=mouseWorld(t);var alpha=Math.atan2(0,1); alpha=(m.mx)*0.9; var grad=alpha*3.0;
+    for(var i=0;i<N;i++){var s=0;for(var e=0;e<M;e++){var dx=gx[i]-ex[e],dy=gy[i]-ey,d=Math.sqrt(dx*dx+dy*dy);s+=Math.sin(d*6-t*4+e*grad);}
+      var v=(s/M+1)/2; v=v*v; F.pos[i*3+2]=v*0.5-0.25; F.colArr[i*3]=base.r*v;F.colArr[i*3+1]=base.g*v;F.colArr[i*3+2]=base.b*v;}
+    F.flush();}};
+};
+
+/* 11a ISAC 추적+데이터 */
+SCENES["isac-track"]=function(){
+  var BASE=[0,-1.7,0];
+  var bp=layerP(1,pal.dot,.2,1);bp.pos[0]=BASE[0];bp.pos[1]=BASE[1];bp.pos[2]=BASE[2];bp.flush();
+  var beam=layerL(3,pal.c1,.5); var tgt=layerL(28,pal.c2,.7);
+  var BITS=18,bits=[];for(var i=0;i<BITS;i++)bits.push(Math.random()); var bp2=layerP(BITS,pal.c1,.12,1);
+  var ECH=12,ech=[];for(var i=0;i<ECH;i++)ech.push(Math.random()); var ep=layerP(ECH,pal.c2,.11,1);
+  var rings=[0,.33,.66]; var RG=layerL(48*rings.length,pal.c2,.18);
+  var T={x:1.6,y:.6};
+  return {update:function(t){var m=mouseWorld(t);T.x+=(m.x-T.x)*.06;T.y+=(m.y-T.y)*.06;
+    var bx=BASE[0],by=BASE[1];var dx=T.x-bx,dy=T.y-by,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len,nx=-uy,ny=ux;
+    // 빔(가는 삼각형)
+    beam.pos.set([bx+nx*.06,by+ny*.06,0, T.x,T.y,0, bx-nx*.06,by-ny*.06,0]);
+    // 빔을 2 세그먼트로
+    beam.pos[0]=bx+nx*.05;beam.pos[1]=by+ny*.05;beam.pos[2]=0;beam.pos[3]=T.x;beam.pos[4]=T.y;beam.pos[5]=0;
+    beam.pos[6]=bx-nx*.05;beam.pos[7]=by-ny*.05;beam.pos[8]=0;beam.pos[9]=T.x;beam.pos[10]=T.y;beam.pos[11]=0;
+    beam.count(2);beam.flush();
+    // 표적 마커(원)
+    for(var k=0;k<28;k++){var a0=k/28*6.28,a1=(k+1)/28*6.28;tgt.pos[k*6]=T.x+Math.cos(a0)*.16;tgt.pos[k*6+1]=T.y+Math.sin(a0)*.16;tgt.pos[k*6+2]=0;tgt.pos[k*6+3]=T.x+Math.cos(a1)*.16;tgt.pos[k*6+4]=T.y+Math.sin(a1)*.16;tgt.pos[k*6+5]=0;}tgt.flush();
+    // 비트(통신): base→target
+    for(var i=0;i<BITS;i++){bits[i]+=.012;if(bits[i]>1)bits[i]-=1;var p=bits[i];bp2.pos[i*3]=bx+dx*p;bp2.pos[i*3+1]=by+dy*p;bp2.pos[i*3+2]=0;}bp2.flush();
+    // 에코(센싱): target→base
+    for(var i2=0;i2<ECH;i2++){ech[i2]+=.016;if(ech[i2]>1)ech[i2]-=1;var p2=ech[i2];ep.pos[i2*3]=T.x-dx*p2;ep.pos[i2*3+1]=T.y-dy*p2;ep.pos[i2*3+2]=0;}ep.flush();
+    // 레인지 링(센싱)
+    var seg=48,maxR=2.6;for(var ri=0;ri<rings.length;ri++){rings[ri]+=.004;if(rings[ri]>1)rings[ri]-=1;var rad=rings[ri]*maxR;
+      for(var s=0;s<seg;s++){var a0=s/seg*6.28,a1=(s+1)/seg*6.28,o=(ri*seg+s)*6;
+        RG.pos[o]=bx+Math.cos(a0)*rad;RG.pos[o+1]=by+Math.sin(a0)*rad;RG.pos[o+2]=0;RG.pos[o+3]=bx+Math.cos(a1)*rad;RG.pos[o+4]=by+Math.sin(a1)*rad;RG.pos[o+5]=0;}}RG.flush();}};
+};
+
+/* 11b 레이더 스윕 (센싱) + 표적 점등 */
+SCENES["isac-dual"]=function(){
+  var NT=60,tx=[],ty=[],lit=[];for(var i=0;i<NT;i++){tx.push((Math.random()-.5)*6);ty.push((Math.random()-.5)*3.4);lit.push(0);}
+  var TP=layerP(NT,null,.13,1,true);for(var i=0;i<NT;i++){TP.pos[i*3]=tx[i];TP.pos[i*3+1]=ty[i];}
+  var SW=layerL(2,pal.c1,.6); var arc=layerL(40,pal.c1,.15);
+  var base=col(pal.dot),hot=col(pal.c2);
+  return {update:function(t){var ang=t*1.1%(Math.PI*2);var ux=Math.cos(ang),uy=Math.sin(ang);
+    SW.pos.set([0,0,0, ux*3.6,uy*3.6,0]);SW.count(1);SW.flush();
+    for(var s=0;s<40;s++){var a0=ang-(s/40)*0.6,a1=ang-((s+1)/40)*0.6,rr=3.6,o=s*6;arc.pos[o]=Math.cos(a0)*rr;arc.pos[o+1]=Math.sin(a0)*rr;arc.pos[o+2]=0;arc.pos[o+3]=Math.cos(a1)*rr;arc.pos[o+4]=Math.sin(a1)*rr;arc.pos[o+5]=0;}arc.flush();
+    for(var i=0;i<NT;i++){var ta=Math.atan2(ty[i],tx[i]);var diff=Math.abs(((ta-ang)+Math.PI*3)%(Math.PI*2)-Math.PI);
+      if(diff<0.08)lit[i]=1; lit[i]*=0.97; var v=0.25+lit[i]*0.75;
+      TP.colArr[i*3]=base.r+(hot.r-base.r)*lit[i];TP.colArr[i*3+1]=base.g+(hot.g-base.g)*lit[i];TP.colArr[i*3+2]=base.b+(hot.b-base.b)*lit[i];
+      TP.pos[i*3+2]=0;}
+    TP.g.attributes.color.needsUpdate=true;TP.flush();}};
+};
+
+/* 1a 신호 네트워크 (노드+엣지+패킷) */
+SCENES["net-packets"]=function(){
+  var N=30,nx=[],ny=[],nz=[];for(var i=0;i<N;i++){nx.push((Math.random()-.5)*5.6);ny.push((Math.random()-.5)*3.2);nz.push((Math.random()-.5)*2);}
+  var edges=[];for(var p=0;p<N;p++)for(var q=p+1;q<N;q++){var d=Math.hypot(nx[p]-nx[q],ny[p]-ny[q],nz[p]-nz[q]);if(d<1.7)edges.push(p,q);}
+  var NP=layerP(N,pal.dot,.14,1),L=layerL(edges.length,pal.line,.2);
+  for(var i=0;i<N;i++){NP.pos[i*3]=nx[i];NP.pos[i*3+1]=ny[i];NP.pos[i*3+2]=nz[i];}NP.flush();
+  for(var e=0;e<edges.length;e+=2){var a=edges[e],b=edges[e+1],o=e*3;L.pos[o]=nx[a];L.pos[o+1]=ny[a];L.pos[o+2]=nz[a];L.pos[o+3]=nx[b];L.pos[o+4]=ny[b];L.pos[o+5]=nz[b];}L.flush();
+  var PK=60,pk=[];for(var k=0;k<PK;k++)pk.push({e:(Math.random()*edges.length/2|0)*2,t:Math.random(),s:.01+Math.random()*.02});
+  var PKP=layerP(PK,pal.c1,.12,1);
+  return {update:function(t){group.rotation.y=t*0.05;
+    for(var k=0;k<PK;k++){var q=pk[k];q.t+=q.s;if(q.t>1){q.t=0;q.e=(Math.random()*edges.length/2|0)*2;}
+      var a=edges[q.e],b=edges[q.e+1];PKP.pos[k*3]=nx[a]+(nx[b]-nx[a])*q.t;PKP.pos[k*3+1]=ny[a]+(ny[b]-ny[a])*q.t;PKP.pos[k*3+2]=nz[a]+(nz[b]-nz[a])*q.t;}PKP.flush();}};
+};
+
+/* 1b 메시 펄스 (격자에서 파동이 번짐) */
+SCENES["net-pulse"]=function(){
+  var cols=26,rows=15,N=cols*rows,gx=[],gy=[];for(var r=0;r<rows;r++)for(var c=0;c<cols;c++){gx.push(-3.4+(c/(cols-1))*6.8);gy.push(-1.9+(r/(rows-1))*3.8);}
+  var P=layerP(N,null,.08,.95,true);for(var i=0;i<N;i++){P.pos[i*3]=gx[i];P.pos[i*3+1]=gy[i];}
+  var edges=[];for(var r2=0;r2<rows;r2++)for(var c2=0;c2<cols;c2++){var id=r2*cols+c2;if(c2<cols-1)edges.push(id,id+1);if(r2<rows-1)edges.push(id,id+cols);}
+  var L=layerL(edges.length,pal.line,.12);for(var e=0;e<edges.length;e+=2){var a=edges[e],b=edges[e+1],o=e*3;L.pos[o]=gx[a];L.pos[o+1]=gy[a];L.pos[o+2]=0;L.pos[o+3]=gx[b];L.pos[o+4]=gy[b];L.pos[o+5]=0;}L.flush();
+  var pulses=[{x:-2,y:0,t0:0},{x:2,y:.5,t0:1.5}];var base=col(pal.dot),hot=col(pal.c1);
+  return {update:function(t){var m=mouseWorld(t);
+    for(var pi=0;pi<pulses.length;pi++){if(t-pulses[pi].t0>4){pulses[pi].t0=t;pulses[pi].x=(pi===0?m.x:(Math.random()-.5)*5);pulses[pi].y=(pi===0?m.y:(Math.random()-.5)*3);}}
+    for(var i=0;i<N;i++){var v=0;for(var pj=0;pj<pulses.length;pj++){var d=Math.hypot(gx[i]-pulses[pj].x,gy[i]-pulses[pj].y);var wf=(t-pulses[pj].t0)*2.4;var g=Math.exp(-Math.pow(d-wf,2)*3);v=Math.max(v,g);}
+      var b=0.22+v*0.78;P.colArr[i*3]=base.r+(hot.r-base.r)*v;P.colArr[i*3+1]=base.g+(hot.g-base.g)*v;P.colArr[i*3+2]=base.b+(hot.b-base.b)*v;P.pos[i*3+2]=v*0.4;}
+    P.flush();}};
+};
+
+/* ============================ 런타임 ============================ */
+var cur=null, curName="token-sphere", t0=null;
+function setScene(name){curName=name;clearGroup();group.rotation.set(0,0,0);t0=null;cur=SCENES[name]();
+  document.querySelectorAll("#scenes .opt").forEach(function(b){b.classList.toggle("on",b.dataset.s===name);});}
+function setPal(name){palName=name;pal=PALS[name];applyBg();setScene(curName);
+  document.querySelectorAll("#pals .opt").forEach(function(b){b.classList.toggle("on",b.dataset.p===name);});}
+document.querySelectorAll("#scenes .opt").forEach(function(b){b.onclick=function(){setScene(b.dataset.s);};});
+document.querySelectorAll("#pals .opt").forEach(function(b){b.onclick=function(){setPal(b.dataset.p);};});
+
+function resize(){var w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+window.addEventListener("resize",resize);resize();
+function loop(ts){if(t0===null)t0=ts;var t=(ts-t0)/1000;if(cur)cur.update(t);renderer.render(scene,camera);requestAnimationFrame(loop);}
+// 쿼리 파라미터 (?scene=, ?palette=)
+var qs=new URLSearchParams(location.search);
+setPal(PALS[qs.get("palette")]?qs.get("palette"):"navy");
+setScene(SCENES[qs.get("scene")]?qs.get("scene"):"token-sphere");
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
