@@ -175,9 +175,9 @@ SCENES["beam-wave"]=function(){
   geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
   geo.setAttribute("color",new THREE.BufferAttribute(colr,3));
   geo.setIndex(idx);
-  var mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.96,depthWrite:false}));
+  var mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,transparent:true,opacity:.5,depthWrite:false}));
   mesh.frustumCulled=false; group.add(mesh);
-  var base=col(pal.c2), TAN=Math.tan(55*Math.PI/180/2);   // c2 = 배경과 대비되는 강조색
+  var base=col(pal.line), TAN=Math.tan(55*Math.PI/180/2);   // 배경과 같은 계열(은은하게)
   return {update:function(t){var m=mouseWorld(t);var grad=m.mx*2.6;
     var hH=TAN*camera.position.z*1.08, hW=hH*camera.aspect;
     var conv=Math.min(t/1.6,1),ec=1-Math.pow(1-conv,3);
@@ -186,7 +186,7 @@ SCENES["beam-wave"]=function(){
       var s=0;for(var e2=0;e2<M;e2++){var dx=gx-ex[e2],dy=gy-ey,d=Math.sqrt(dx*dx+dy*dy);s+=Math.sin(d*3.2-t*3.6+e2*grad);}
       var v=(s/M+1)/2; v*=v;
       pos[i*3]=sx[i]+(gx-sx[i])*ec; pos[i*3+1]=sy[i]+(gy-sy[i])*ec; pos[i*3+2]=(v-0.5)*1.0*ec;
-      var b=0.32+0.68*v;                          // 골=어두운 강조색, 마루=밝은 강조색(음영)
+      var b=0.5+0.5*v;                            // 배경 톤에서 살짝 밝아지는 정도(은은한 음영)
       colr[i*3]=base.r*b;colr[i*3+1]=base.g*b;colr[i*3+2]=base.b*b;}
     geo.attributes.position.needsUpdate=true;geo.attributes.color.needsUpdate=true;}};
 };
