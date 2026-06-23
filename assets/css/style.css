@@ -12,6 +12,12 @@
   --soft: #f6f8fa;
   --badge: #b45309;
   --max: 920px;
+  /* 헤더(단색 + 선택 반전) — theme.js 가 계절별로 덮어씀 (없으면 이 기본값) */
+  --header-bg: #073f78; --header-fg: #ffffff; --header-active-bg: #ffffff; --header-active-fg: #073f78; --header-line: #0a2f5e;
+  /* 패널 그룹색 — theme.js 가 계절별로 덮어씀 */
+  --t-navy-bg: linear-gradient(150deg, #0a4884, #073f78 55%, #06365f); --t-navy-fg:#eaf1fb; --t-navy-head:#fff; --t-navy-muted:#c4d4ea; --t-navy-link:#9fccff; --t-navy-border:rgba(255,255,255,.22);
+  --t-white-bg:#ffffff; --t-white-fg:#28323f; --t-white-head:#073f78; --t-white-muted:#5b6675; --t-white-link:#073f78; --t-white-border:#e5e7eb;
+  --t-gray-bg:#f3f5f8; --t-gray-fg:#28323f; --t-gray-head:#073f78; --t-gray-muted:#5b6675; --t-gray-link:#073f78; --t-gray-border:#e2e7ee;
   --font-body: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI",
     "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", Arial, sans-serif;
   --font-head: "Space Grotesk", "Pretendard", -apple-system, BlinkMacSystemFont,
@@ -47,62 +53,56 @@ a:hover { text-decoration: underline; }
 
 /* ---------- header / nav ---------- */
 .site-header {
-  border-bottom: 1px solid transparent;
-  background: transparent;
+  border-bottom: 1px solid var(--header-line);
+  background: var(--header-bg);
   position: sticky; top: 0; z-index: 10;
-  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
+  transition: background .3s ease, border-color .3s ease, box-shadow .2s ease;
 }
-.site-header:hover,
-.site-header.scrolled {
-  background: var(--bg);
-  border-bottom-color: var(--line);
-  box-shadow: 0 6px 20px rgba(0,0,0,.06);
-}
+.site-header.scrolled { box-shadow: 0 6px 20px rgba(0,0,0,.18); }
 .site-header .wrap {
   display: flex; align-items: stretch; justify-content: space-between;
   flex-wrap: wrap; gap: 8px; min-height: 66px; padding-top: 0; padding-bottom: 0;
   max-width: 1020px; /* 메뉴 한 줄은 유지하되, 로고와 메뉴가 과하게 벌어지지 않게 */
 }
-.brand { font-weight: 700; font-size: 1.15rem; color: var(--fg); letter-spacing: .02em; display: flex; align-items: center; }
-.brand span { color: var(--accent); }
-.brand-logo { height: 38px; width: auto; display: block; }
+.brand { font-weight: 700; font-size: 1.15rem; color: var(--header-fg); letter-spacing: .02em; display: flex; align-items: center; }
+.brand span { color: var(--header-fg); }
+.brand-logo { height: 38px; width: auto; display: block; filter: brightness(0) invert(1); opacity: .95; }
 @media (max-width: 600px) { .brand-logo { height: 32px; } }
 .nav { display: flex; gap: 4px; flex-wrap: nowrap; align-items: stretch; }
 .nav a {
-  color: var(--fg); padding: 0 12px; border-radius: 0; font-size: 15.2px; /* 루트 확대와 무관하게 원래 크기 유지 */
+  color: var(--header-fg); padding: 0 12px; border-radius: 0; font-size: 15.2px; /* 루트 확대와 무관하게 원래 크기 유지 */
   font-family: var(--font-head); white-space: nowrap; /* 강조용(제목) 폰트 + 한 줄 유지 */
   display: flex; align-items: center;
 }
-.nav a:hover { background: var(--soft); text-decoration: none; }
-.nav a.active { background: var(--nav-active); color: #fff; border-radius: 0; }
+.nav a:hover:not(.active) { background: rgba(127,127,127,.22); text-decoration: none; }
+.nav a.active { background: var(--header-active-bg); color: var(--header-active-fg); border-radius: 0; }
 /* 좁은 화면에서는 한 줄 강제 해제(가로 넘침 방지) */
 @media (max-width: 980px) { .nav { flex-wrap: wrap; } }
 
 /* language toggle — 지구본 + 슬라이드 스위치 (KO/EN) */
 .lang-toggle {
   display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
-  background: var(--soft); border: 1px solid var(--line); border-radius: 999px;
+  background: transparent; border: 1px solid currentColor; color: var(--header-fg); border-radius: 999px;
   padding: 4px 9px; margin-left: 6px; align-self: center; font: inherit;
   transition: border-color .15s, background .15s;
 }
-.lang-toggle:hover { border-color: var(--accent); background: #fff; }
-.lt-globe { color: var(--muted); flex: none; transition: color .15s; }
-.lang-toggle:hover .lt-globe { color: var(--nav-active); }
+.lang-toggle:hover { background: rgba(127,127,127,.22); }
+.lt-globe { color: var(--header-fg); flex: none; transition: color .15s; }
 .lt-switch { position: relative; display: inline-flex; }
 .lt-opt {
   position: relative; z-index: 1; width: 30px; text-align: center;
-  font-size: 12.2px; font-weight: 700; line-height: 20px; color: var(--muted);
-  transition: color .2s; letter-spacing: .02em;
+  font-size: 12.2px; font-weight: 700; line-height: 20px; color: var(--header-fg); opacity: .55;
+  transition: color .2s, opacity .2s; letter-spacing: .02em;
 }
 .lt-knob {
   position: absolute; top: 0; left: 0; width: 30px; height: 20px;
-  background: var(--nav-active); border-radius: 999px; z-index: 0;
+  background: var(--header-active-bg); border-radius: 999px; z-index: 0;
   transition: transform .22s ease;
 }
 html[lang="ko"] .lt-knob { transform: translateX(0); }
 html[lang="en"] .lt-knob { transform: translateX(30px); }
 html[lang="ko"] .lt-opt:first-child,
-html[lang="en"] .lt-opt:last-child { color: #fff; }
+html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1; }
 
 /* nav dropdown (Journal/Conferences/Patents → International / Domestic) */
 .dropdown { position: relative; display: flex; align-items: stretch; }
@@ -328,9 +328,9 @@ html[lang="en"] .lt-opt:last-child { color: #fff; }
 .panel .highlight-list a { color: var(--plink); }
 
 /* 패널 색상 */
-.panel.c-navy { --pbg: linear-gradient(150deg, #0a4884, #073f78 55%, #06365f); --pfg:#eaf1fb; --phead:#fff; --pmuted:#c4d4ea; --plink:#9fccff; --pborder:rgba(255,255,255,.22); }
-.panel.c-white { --pbg:#ffffff; --pfg:#28323f; --phead:#073f78; --pmuted:#5b6675; --plink:#073f78; --pborder:#e5e7eb; }
-.panel.c-gray { --pbg:#f3f5f8; --pfg:#28323f; --phead:#073f78; --pmuted:#5b6675; --plink:#073f78; --pborder:#e2e7ee; }
+.panel.c-navy { --pbg: var(--t-navy-bg); --pfg: var(--t-navy-fg); --phead: var(--t-navy-head); --pmuted: var(--t-navy-muted); --plink: var(--t-navy-link); --pborder: var(--t-navy-border); }
+.panel.c-white { --pbg: var(--t-white-bg); --pfg: var(--t-white-fg); --phead: var(--t-white-head); --pmuted: var(--t-white-muted); --plink: var(--t-white-link); --pborder: var(--t-white-border); }
+.panel.c-gray { --pbg: var(--t-gray-bg); --pfg: var(--t-gray-fg); --phead: var(--t-gray-head); --pmuted: var(--t-gray-muted); --plink: var(--t-gray-link); --pborder: var(--t-gray-border); }
 
 .about-vision { margin-top: 1.1em; }
 
