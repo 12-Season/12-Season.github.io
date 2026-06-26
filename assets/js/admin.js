@@ -660,6 +660,8 @@
         row[fd.name] = formVal(fd.name);
       });
       Object.keys(imgVals).forEach(function (k) { row[k] = imgVals[k]; });
+      // 출판물 제목은 Title Case 규칙 자동 적용
+      if (col.isPub && row.title && global.TitleCase) row.title = global.TitleCase(row.title);
 
       var msgName = row[col.idCol] || row.title || "item";
       if (col.auto) { // album
