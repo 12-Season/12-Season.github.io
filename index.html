@@ -66,8 +66,10 @@
 
     /* 연구 분야 풀스크린 섹션 */
     .area .wrap { width: 100%; }
-    .area-idx { font-family: var(--font-head); font-weight: 700; font-size: clamp(3rem, 10vw, 7rem); line-height: 1; opacity: .14; margin: 0 0 .28em; }
-    .area h2 { font-size: clamp(2.4rem, 6vw, 4.2rem); margin: 0 0 .35em; line-height: 1.08; }
+    .area-head { display: flex; align-items: baseline; gap: .4em; margin: 0 0 .12em; flex-wrap: wrap; }
+    .area-idx { font-family: var(--font-head); font-weight: 700; font-size: clamp(2.6rem, 8vw, 5.5rem); line-height: 1; opacity: .16; }
+    .area-cat { font-family: var(--font-head); font-weight: 700; font-size: clamp(1.3rem, 3.4vw, 2.4rem); letter-spacing: .03em; line-height: 1; color: var(--phead); }
+    .area h2 { font-size: clamp(1.9rem, 4.6vw, 3.2rem); margin: 0 0 .4em; line-height: 1.12; }
     .area .lead { font-size: clamp(1.1rem, 2vw, 1.45rem); max-width: 60ch; line-height: 1.7; margin: 0 0 1em; }
     .area ul { margin: 0; padding-left: 1.1em; max-width: 60ch; }
     .area li { font-size: clamp(1rem, 1.7vw, 1.2rem); margin: .35em 0; line-height: 1.5; }
@@ -154,13 +156,13 @@
     <div class="wrap">
       <p class="v3-eyebrow ru">Laboratory for Information Transmission</p>
       <h1 class="v3-title ru d1">
-        <span class="ln" data-ko="6G의 전송을," data-en="Reimagining">6G의 전송을,</span>
-        <span class="ln" data-ko="다시 설계합니다" data-en="transmission for 6G">다시 설계합니다</span>
+        <span class="ln" data-ko="6G의 전송을" data-en="Designing">6G의 전송을</span>
+        <span class="ln" data-ko="설계합니다" data-en="transmission for 6G">설계합니다</span>
       </h1>
       <p class="v3-sub ru d2" data-ko="통신 · 센싱 · 인공지능" data-en="Communication · Sensing · AI">통신 · 센싱 · 인공지능</p>
       <div class="v3-cta ru d3">
         <a class="v3-btn primary" href="#area1" data-ko="연구 보기" data-en="Explore research">연구 보기</a>
-        <a class="v3-btn ghost" href="contact.html" data-ko="합류하기" data-en="Join us">합류하기</a>
+        <a class="v3-btn ghost" href="contact.html" data-ko="함께하기" data-en="Join us">함께하기</a>
       </div>
     </div>
     <div class="v3-scroll">Scroll ↓</div>
@@ -168,8 +170,8 @@
 
   <!-- 연구 분야 (한 화면씩) -->
   <section class="snap panel c-white area" id="area1"><div class="wrap panel-content">
-    <p class="area-idx ru">01</p>
-    <h2 class="ru" data-ko="통신 — 전송의 한계를 넓히다" data-en="Communication — pushing transmission limits">통신 — 전송의 한계를 넓히다</h2>
+    <div class="area-head ru"><span class="area-idx">01</span><span class="area-cat" data-ko="통신" data-en="Communication">통신</span></div>
+    <h2 class="ru d1" data-ko="전송을 설계하다" data-en="Designing transmission">전송을 설계하다</h2>
     <p class="lead ru d1" data-ko="Massive MIMO·빔포밍·부호화 등 무선 전송의 핵심 이론과 설계를 연구해 더 빠르고 신뢰도 높은 통신을 만듭니다." data-en="We study the core theory and design of wireless transmission — massive MIMO, beamforming, coding — for faster, more reliable communication.">Massive MIMO·빔포밍·부호화 등 무선 전송의 핵심 이론과 설계를 연구해 더 빠르고 신뢰도 높은 통신을 만듭니다.</p>
     <ul class="ru d2">
       <li data-ko="Massive MIMO 하이브리드 빔포밍" data-en="Hybrid beamforming for massive MIMO">Massive MIMO 하이브리드 빔포밍</li>
@@ -179,8 +181,8 @@
   </div></section>
 
   <section class="snap panel c-gray area" id="area2"><div class="wrap panel-content">
-    <p class="area-idx ru">02</p>
-    <h2 class="ru" data-ko="센싱 — 전파로 세상을 보다" data-en="Sensing — seeing the world with radio">센싱 — 전파로 세상을 보다</h2>
+    <div class="area-head ru"><span class="area-idx">02</span><span class="area-cat" data-ko="센싱" data-en="Sensing">센싱</span></div>
+    <h2 class="ru d1" data-ko="전파로 감지하다" data-en="Sensing with waves">전파로 감지하다</h2>
     <p class="lead ru d1" data-ko="통신과 센싱을 하나의 시스템에서 통합(ISAC)하고, 근거리장(near-field) 환경에서 표적을 추정하는 6G 원천 기술을 연구합니다." data-en="We integrate communication and sensing in one system (ISAC) and estimate targets in near-field regimes — core 6G technologies.">통신과 센싱을 하나의 시스템에서 통합(ISAC)하고, 근거리장(near-field) 환경에서 표적을 추정하는 6G 원천 기술을 연구합니다.</p>
     <ul class="ru d2">
       <li data-ko="ISAC 통합 센싱·통신" data-en="ISAC: integrated sensing & communication">ISAC 통합 센싱·통신</li>
@@ -190,8 +192,8 @@
   </div></section>
 
   <section class="snap panel c-navy area" id="area3"><div class="wrap panel-content">
-    <p class="area-idx ru">03</p>
-    <h2 class="ru" data-ko="인공지능 — 통신을 학습하다" data-en="AI — learning to communicate">인공지능 — 통신을 학습하다</h2>
+    <div class="area-head ru"><span class="area-idx">03</span><span class="area-cat" data-ko="인공지능" data-en="AI">인공지능</span></div>
+    <h2 class="ru d1" data-ko="통신을 학습하다" data-en="Learning to communicate">통신을 학습하다</h2>
     <p class="lead ru d1" data-ko="딥러닝으로 채널 추정·압축·자원 할당을 새롭게 설계하고, 토큰 기반 통신 등 AI-native 6G를 탐구합니다." data-en="We redesign channel estimation, compression, and resource allocation with deep learning, and explore AI-native 6G such as token-based communication.">딥러닝으로 채널 추정·압축·자원 할당을 새롭게 설계하고, 토큰 기반 통신 등 AI-native 6G를 탐구합니다.</p>
     <ul class="ru d2">
       <li data-ko="멀티모달 AI 채널 추정" data-en="Multi-modal AI channel estimation">멀티모달 AI 채널 추정</li>
@@ -202,8 +204,8 @@
 
   <!-- 갤러리: 연구실 분위기 (앨범에서 자동 로드) -->
   <section class="snap panel c-white area" id="gallery"><div class="wrap panel-content">
-    <p class="area-idx ru">04</p>
-    <h2 class="ru" data-ko="연구실 이야기" data-en="Lab life">연구실 이야기</h2>
+    <div class="area-head ru"><span class="area-idx">04</span><span class="area-cat" data-ko="갤러리" data-en="Gallery">갤러리</span></div>
+    <h2 class="ru d1" data-ko="연구실 이야기" data-en="Life at the lab">연구실 이야기</h2>
     <p class="lead ru d1" data-ko="세미나·학회·행사까지 — 함께 연구하고 함께 즐기는 LIT의 일상입니다." data-en="Seminars, conferences, and gatherings — everyday life at LIT.">세미나·학회·행사까지 — 함께 연구하고 함께 즐기는 LIT의 일상입니다.</p>
     <div class="fan ru d2" id="fan">
       <button class="fan-nav prev" type="button" aria-label="이전">‹</button>
@@ -382,6 +384,17 @@
     // 빛 전파: 노드에서 시작해 선을 따라 흐르고(레벨1), 도착 노드에서 한 번 더(레벨2)까지만
     var flows=[];
     function emit(node){ adj[node].forEach(function(nb){ if(flows.length<300) flows.push({a:node,b:nb.o,t:0,sp:0.007+Math.random()*0.003,lvl:1,done:false,life:1}); }); }
+    function adjacent(a,b){ for(var i=0;i<adj[a].length;i++) if(adj[a][i].o===b) return true; return false; }
+    // 3초마다: 앞면 노드 중 서로 이웃하지 않은 3개를 무작위로 골라 자동 발광
+    function autoEmit(){
+      var front=[]; for(var i=0;i<N;i++){ _wv.set(npos[i][0],npos[i][1],npos[i][2]).applyMatrix4(group.matrixWorld); if(_wv.z>0.3) front.push(i); }
+      for(var i=front.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=front[i]; front[i]=front[j]; front[j]=t; }
+      var picked=[];
+      for(var k=0;k<front.length && picked.length<3;k++){ var c=front[k], ok=true;
+        for(var p=0;p<picked.length;p++){ if(adjacent(c,picked[p])){ ok=false; break; } }
+        if(ok) picked.push(c); }
+      picked.forEach(function(n){ emit(n); });
+    }
     // 피킹(앞면만) / 드래그
     var ray=new THREE.Raycaster(); ray.params.Points.threshold=0.10;
     var mouse=new THREE.Vector2(99,99), inside=false, _wv=new THREE.Vector3();
@@ -402,8 +415,10 @@
     function syncBtns(){ document.querySelectorAll('.opt1-ctl [data-globe]').forEach(function(b){ b.classList.toggle('on',b.dataset.globe===curMode); b.disabled=(b.dataset.globe==='land'&&landFailed);}); }
     document.querySelectorAll('.opt1-ctl [data-globe]').forEach(function(b){ b.addEventListener('click',function(){ if(b.dataset.globe==='land'&&landFailed)return; curMode=b.dataset.globe; applyDots(); syncBtns(); }); });
     syncBtns();
-    var t0=null, nowT=0;
+    var t0=null, nowT=0, lastAuto=0;
     function frame(ts){if(t0===null)t0=ts; nowT=(ts-t0)/1000; var t=nowT;
+      group.updateMatrixWorld();
+      if(t-lastAuto>=3){ lastAuto=t; autoEmit(); }   // 3초마다 자동 발광
       lmat.opacity=Math.min(t/2.6,1)*0.18;
       if(!dragging) group.rotation.y+=0.0006;            // 더 느린 자동 회전
       // 호버: 앞면 노드 → 노란 글로우 + 빛 방출
