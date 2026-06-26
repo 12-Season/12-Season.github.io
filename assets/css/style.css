@@ -869,6 +869,9 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 .adm-msg.adm-ok { color: #15803d; } .adm-msg.adm-err { color: #b91c1c; }
 
 .adm-count { color: var(--muted); font-size: .85rem; margin: 4px 0; }
+.adm-hl-h { margin: 1.1em 0 .4em; font-size: .95rem; color: var(--accent-dark); }
+.adm-hl { margin: 0; padding-left: 1.4em; }
+.adm-hl li { margin: .45em 0; line-height: 1.5; font-size: .92rem; }
 .adm-list { display: flex; flex-direction: column; }
 .adm-row { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-bottom: 1px solid var(--line); }
 .adm-row:hover { background: var(--soft); }

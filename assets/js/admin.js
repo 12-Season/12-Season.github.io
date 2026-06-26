@@ -314,14 +314,7 @@
       ],
     },
     highlights: {
-      label: "Highlights (대표성과)", csv: "data/highlights.csv", idCol: "title",
-      title: function (r) { return r.title || ""; },
-      sub: function (r) { return r.source || ""; },
-      fields: [
-        { name: "source", label: "출처 (출판물 종류)", type: "select",
-          options: ["journal_international", "journal_domestic", "conference_international", "conference_domestic", "patent_international", "patent_domestic"] },
-        { name: "title", label: "논문 제목 (출판물 목록의 제목과 똑같이)", required: true },
-      ],
+      label: "Highlights (대표성과·자동)", readonly: true,
     },
   };
 
@@ -431,6 +424,18 @@
     var pubSel = document.getElementById("admPubSel");
     document.getElementById("admFilter").value = "";
 
+    // 읽기 전용(자동) 탭: 추가 버튼/필터 숨기고 정보만 표시
+    var addBtn = document.getElementById("admAdd"), filt = document.getElementById("admFilter");
+    if (col.readonly) {
+      pubSel.innerHTML = "";
+      if (addBtn) addBtn.style.display = "none";
+      if (filt) filt.style.display = "none";
+      if (key === "highlights") renderHighlightsInfo();
+      return;
+    }
+    if (addBtn) addBtn.style.display = "";
+    if (filt) filt.style.display = "";
+
     function buildSel(targets) {
       curPubTarget = targets[0].key;
       pubSel.innerHTML = '<select id="admPubTarget">' + targets.map(function (t) {
@@ -457,6 +462,43 @@
     }
     pubSel.innerHTML = "";
     loadList();
+  }
+
+  // 대표성과(자동·읽기전용): 현재 표시 5편 + 전체 후보 보기
+  function renderHighlightsInfo() {
+    listEl.innerHTML = '<p class="muted">불러오는 중…</p>';
+    var VENUES = [/vehicular technology/i, /selected areas in communications/i, /wireless communications/i, /transactions on communications/i];
+    var now = new Date(), Y = now.getFullYear(), minY = Y - 5, maxY = Y - 1;
+    function yr(r) { var d = (r.date || r.added || "").match(/(\d{4})/); return d ? d[1] : ""; }
+    function cite(r) {
+      var doi = (r.doi || "").trim(), href = doi ? "https://doi.org/" + doi : (r.url || "").trim();
+      var t = esc(r.title || ""), tl = href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + t + "</a>" : t;
+      return (r.author ? esc(r.author) + ", " : "") + '"' + tl + '," ' + (r.journal ? "<em>" + esc(r.journal) + "</em>" : "") + (yr(r) ? ", " + esc(yr(r)) : "") + ".";
+    }
+    function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    fetch("data/journal_international.csv?z=" + Math.round(performance.now()), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.text() : ""; })
+      .then(function (t) {
+        var rows = t ? P._rowsToObjects(P._parseCSV(t)) : [], seen = {}, pool = [];
+        rows.forEach(function (r) {
+          var title = (r.title || "").trim();
+          if (!title || (r.status || "").toLowerCase() === "draft") return;
+          if (!VENUES.some(function (re) { return re.test(r.journal || ""); })) return;
+          var y = parseInt(yr(r), 10); if (!(y >= minY && y <= maxY)) return;
+          var k = title.toLowerCase(); if (seen[k]) return; seen[k] = 1; pool.push(r);
+        });
+        if (!pool.length) { listEl.innerHTML = '<p class="muted">조건에 맞는 후보 논문이 없습니다 (최근 5년 · TVT/TCOM/JSAC/TWC).</p>'; return; }
+        var shuffled = pool.slice(), rand = rng(Y * 100 + (now.getMonth() + 1));
+        for (var i = shuffled.length - 1; i > 0; i--) { var j = Math.floor(rand() * (i + 1)); var tmp = shuffled[i]; shuffled[i] = shuffled[j]; shuffled[j] = tmp; }
+        var picks = shuffled.slice(0, 5), mm = ("0" + (now.getMonth() + 1)).slice(-2);
+        listEl.innerHTML =
+          '<p class="muted" style="margin:.2em 0 1em">최근 5년(' + minY + '~' + maxY + ') · TVT/TCOM/JSAC/TWC 중 <b>매월 무작위 5편</b>이 자동 선택됩니다(수정 불가). 아래는 현재 상태입니다.</p>' +
+          '<h4 class="adm-hl-h">현재 표시 중 — ' + Y + '.' + mm + ' · ' + picks.length + '편</h4>' +
+          '<ol class="adm-hl">' + picks.map(function (r) { return "<li>" + cite(r) + "</li>"; }).join("") + "</ol>" +
+          '<h4 class="adm-hl-h">전체 후보 — ' + pool.length + '편</h4>' +
+          '<ol class="adm-hl">' + pool.map(function (r) { return "<li>" + cite(r) + "</li>"; }).join("") + "</ol>";
+      })
+      .catch(function (e) { listEl.innerHTML = '<div class="error">로드 실패: ' + esc(e.message) + "</div>"; });
   }
 
   var rowsCache = [];

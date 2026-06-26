@@ -51,56 +51,59 @@
 })(window);
 /* 패널 스크롤 애니메이션은 reveal.js, 이미지 확대는 zoom.js 로 분리되었습니다. */
 
-/* ===== 대표 연구 성과: data/highlights.csv 가 가리키는 출판물을 자동 인용 ===== */
+/* ===== 대표 연구 성과: 최근 5년(작년까지) TVT/TCOM/JSAC/TWC 논문 중 5편을 무작위로 (월 단위 고정) ===== */
 (function (global) {
   var P = global.Pubs;
   var mount = document.getElementById("highlightList");
   if (!mount || !P) return;
 
+  var SRC = "journal_international";   // TVT/TCOM/JSAC/TWC = IEEE 국제 저널
+  var VENUES = [/vehicular technology/i, /selected areas in communications/i, /wireless communications/i, /transactions on communications/i];
+  var N = 5;
+  var now = new Date(), Y = now.getFullYear(), minY = Y - 5, maxY = Y - 1;
+
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
-  function norm(s) { return String(s || "").toLowerCase().replace(/\s+/g, " ").trim(); }
   function year(r) { var d = (r.date || r.added || "").match(/(\d{4})/); return d ? d[1] : ""; }
-  function venue(r, src) {
-    if (src.indexOf("journal") === 0) return r.journal || "";
-    if (src.indexOf("conference") === 0) return r.booktitle || r.note || r.organization || "";
-    return r.note || r.number || ""; // patent
-  }
-  function cite(r, src) {
-    var t = r.title || "";
+  function cite(r) {
     var doi = (r.doi || "").trim(), url = (r.url || "").trim();
     var href = doi ? "https://doi.org/" + doi : url;
-    var titleHtml = href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(t) + "</a>" : esc(t);
-    var v = venue(r, src), y = year(r);
+    var titleHtml = href ? '<a href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(r.title || "") + "</a>" : esc(r.title || "");
+    var v = r.journal || "", y = year(r);
     return (r.author ? esc(r.author) + ", " : "") + '"' + titleHtml + '," ' +
       (v ? "<em>" + esc(v) + "</em>" : "") + (y ? (v ? ", " : "") + esc(y) : "") + ".";
   }
+  // 시드 기반 난수(월이 바뀌면 다른 결과) — mulberry32
+  function rng(seed) {
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
 
-  fetch("data/highlights.csv", { cache: "no-store" })
+  fetch("data/" + SRC + ".csv", { cache: "no-store" })
     .then(function (r) { return r.ok ? r.text() : ""; })
     .then(function (t) {
-      var picks = t ? P._rowsToObjects(P._parseCSV(t)).filter(function (x) { return (x.title || "").trim(); }) : [];
-      if (!picks.length) { mount.innerHTML = ""; return; }
-      var srcs = {};
-      picks.forEach(function (p) { srcs[(p.source || "").trim()] = 1; });
-      var keys = Object.keys(srcs).filter(Boolean);
-      return Promise.all(keys.map(function (s) {
-        return fetch("data/" + s + ".csv", { cache: "no-store" })
-          .then(function (r) { return r.ok ? r.text() : ""; })
-          .then(function (txt) {
-            var map = {};
-            if (txt) P._rowsToObjects(P._parseCSV(txt)).forEach(function (r) { if (r.title) map[norm(r.title)] = r; });
-            srcs[s] = map;
-          });
-      })).then(function () {
-        mount.innerHTML = picks.map(function (p) {
-          var s = (p.source || "").trim();
-          var rec = (srcs[s] && srcs[s][norm(p.title)]) || null;
-          return "<li>" + (rec ? cite(rec, s) : esc(p.title)) + "</li>";
-        }).join("");
+      var rows = t ? P._rowsToObjects(P._parseCSV(t)) : [];
+      var seen = {}, pool = [];
+      rows.forEach(function (r) {
+        var j = r.journal || "", title = (r.title || "").trim();
+        if (!title || (r.status || "").toLowerCase() === "draft") return;
+        if (!VENUES.some(function (re) { return re.test(j); })) return;
+        var y = parseInt(year(r), 10);
+        if (!(y >= minY && y <= maxY)) return;
+        var k = title.toLowerCase();
+        if (seen[k]) return; seen[k] = 1; pool.push(r);
       });
+      if (!pool.length) { mount.innerHTML = ""; return; }
+      // 월(YYYYMM) 시드로 셔플 → 한 달 동안 동일, 다음 달에 변경
+      var rand = rng(Y * 100 + (now.getMonth() + 1));
+      for (var i = pool.length - 1; i > 0; i--) { var j2 = Math.floor(rand() * (i + 1)); var tmp = pool[i]; pool[i] = pool[j2]; pool[j2] = tmp; }
+      mount.innerHTML = pool.slice(0, N).map(function (r) { return "<li>" + cite(r) + "</li>"; }).join("");
     })
     .catch(function () { mount.innerHTML = ""; });
 })(window);

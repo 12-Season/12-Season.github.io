@@ -16,7 +16,8 @@
   var KEY = "lit-lang";
 
   function getLang() {
-    return localStorage.getItem(KEY) === "en" ? "en" : "ko";
+    // 기본 언어는 영어. 사용자가 한국어를 고르면 그 선택을 저장·유지.
+    return localStorage.getItem(KEY) === "ko" ? "ko" : "en";
   }
 
   function apply(lang) {
