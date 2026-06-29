@@ -53,7 +53,7 @@
     if (q) {
       var enc = encodeURIComponent(q);
       var fr = $("mapFrame");
-      if (fr) { fr.src = "https://www.google.com/maps?q=" + enc + "&hl=ko&z=17&output=embed"; fr.title = q + " 지도"; }
+      if (fr) { fr.src = "https://www.google.com/maps?q=" + enc + "&hl=ko&z=18&output=embed"; fr.title = q + " 지도"; }
       var lk = $("mapLink");
       if (lk) lk.href = "https://www.google.com/maps/search/?api=1&query=" + enc;
     }

@@ -334,7 +334,7 @@
         { name: "office_ko", label: "연구실 위치 (한국어) — 예: LG이노베이션홀(N24) 3111호" },
         { name: "office_en", label: "Office (English)" },
         { name: "tel", label: "전화" },
-        { name: "map_query", label: "지도 검색어(Google Maps) — 예: KAIST LG이노베이션홀 N24" },
+        { name: "map_query", label: "지도 위치(Google Maps) — 정확히 찍으려면 좌표 입력 '위도,경도' (예: 36.3754069,127.3635082). 장소명도 가능하나 부정확할 수 있음" },
       ],
     },
     highlights: {
