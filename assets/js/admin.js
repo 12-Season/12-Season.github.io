@@ -177,6 +177,7 @@
         { name: "title", label: "제목", required: true },
         { name: "content", label: "설명", type: "textarea" },
         { name: "status", label: "상태", type: "select", options: STATUS_PUB },
+        { name: "date", label: "날짜 (예: 2024-03-15 · 비우면 오늘 · 옛 사진은 실제 날짜를 넣으면 그 시점에 정렬됨)" },
         { name: "images", label: "사진·영상 (여러 개 가능 · 영상은 20초 이내·100MB 미만 권장 · 첫 장이 썸네일)", type: "images" },
       ],
     },
@@ -667,6 +668,14 @@
     return el ? el.value.trim() : "";
   }
 
+  // 앨범 날짜 결정: 입력값이 있으면 사용(날짜만이면 현재 시각을 붙여 고유성 확보), 없으면 편집중 값/지금
+  function albumStamp() {
+    var d = formVal("date");
+    if (!d) return editingId || nowStamp();
+    d = d.replace("T", " ").trim();
+    return /^\d{4}-\d{2}-\d{2}[ ]\d{2}:\d{2}/.test(d) ? d : (d.slice(0, 10) + " " + nowStamp().slice(11));
+  }
+
   function openModal() { document.getElementById("admModal").setAttribute("aria-hidden", "false"); document.body.style.overflow = "hidden"; }
   function closeModal() { document.getElementById("admModal").setAttribute("aria-hidden", "true"); document.body.style.overflow = ""; }
   function setFormMsg(t, kind) {
@@ -699,8 +708,8 @@
       if (col.isPub && row.title && global.TitleCase) row.title = global.TitleCase(row.title);
 
       var msgName = row[col.idCol] || row.title || "item";
-      if (col.auto) { // album
-        var stamp = editingId || nowStamp();
+      if (col.auto) { // album — 입력 날짜(있으면) 기준
+        var stamp = albumStamp();
         row.date = stamp; row.year = stamp.slice(0, 4);
       }
 
@@ -780,7 +789,7 @@
         }
       } else if (fd.type === "images") {
         if (files && files.length) {
-          var stamp = (editingId || nowStamp());
+          var stamp = albumStamp();   // 입력 날짜 기준 폴더(연/월)
           var ym = stamp.slice(0, 4) + "/" + stamp.slice(5, 7);
           var paths = [];
           // 순차 업로드
