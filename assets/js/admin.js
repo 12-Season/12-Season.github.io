@@ -179,7 +179,7 @@
         { name: "status", label: "상태", type: "select", options: STATUS_PUB },
         { name: "date", label: "날짜 (예: 2024-03-15 · 비우면 오늘 · 옛 사진은 실제 날짜를 넣으면 그 시점에 정렬됨)" },
         { name: "images", label: "사진·영상 (여러 개 가능 · 영상은 20초 이내·100MB 미만 권장 · 첫 장이 썸네일)", type: "images" },
-        { name: "__thumbpick", label: "대표 사진(썸네일) 선택 — 영상을 고르면 첫 프레임이 썸네일로 저장됩니다", type: "thumbpick" },
+        { name: "__thumbpick", label: "사진 순서 변경 · 대표(썸네일) 선택 — ◀▶로 순서 이동, '대표'로 지정(영상 지정 시 첫 프레임 캡처)", type: "thumbpick" },
       ],
     },
     publications: {
@@ -603,13 +603,22 @@
         pendingFiles[inp.getAttribute("data-name")] = inp.files;
       });
     });
-    // 썸네일 선택: 라디오 변경 시 선택 표시(.on) 토글
+    // 미디어 매니저: 라디오(대표) 표시 토글 + ◀▶ 순서 이동
     var tp = f.querySelector(".am-thumbpick");
-    if (tp) tp.addEventListener("change", function () {
-      Array.prototype.forEach.call(tp.querySelectorAll(".tp-item"), function (it) {
-        it.classList.toggle("on", !!it.querySelector("input:checked"));
+    if (tp) {
+      tp.addEventListener("change", function () {
+        Array.prototype.forEach.call(tp.querySelectorAll(".tp-item"), function (it) {
+          it.classList.toggle("on", !!it.querySelector('input[name="__thumb"]:checked'));
+        });
       });
-    });
+      tp.addEventListener("click", function (e) {
+        var btn = e.target.closest && e.target.closest(".tp-mv");
+        if (!btn) return;
+        var item = btn.closest(".tp-item");
+        if (btn.classList.contains("tp-l") && item.previousElementSibling) tp.insertBefore(item, item.previousElementSibling);
+        else if (btn.classList.contains("tp-r") && item.nextElementSibling) tp.insertBefore(item.nextElementSibling, item);
+      });
+    }
     // 상세 본문(md): 편집 시 기존 파일 내용을 textarea 에 채움 (slug 기준)
     var mds = col.fields.filter(function (fd) { return fd.type === "md"; });
     if (mds.length && row && (row.slug || "").trim()) {
@@ -672,7 +681,7 @@
       var imgs = (((row && row.image_files) || "")).split("|").map(function (s) { return s.trim(); }).filter(Boolean);
       if (!imgs.length) {
         return '<label class="am-field">' + lab +
-          '<span class="am-cur">사진·영상을 올리고 저장한 뒤, 다시 이 항목을 수정하면 대표(썸네일)를 고를 수 있어요. (기본: 첫 사진)</span></label>';
+          '<span class="am-cur">사진·영상을 올리고 저장한 뒤, 다시 이 항목을 수정하면 순서 변경·대표(썸네일) 선택을 할 수 있어요. (기본: 첫 사진)</span></label>';
       }
       var cur = row ? (row.thumbnail_file || "").trim() : "";
       var base = "assets/img/album/";
@@ -681,10 +690,17 @@
         var media = isVid(p)
           ? '<video src="' + esc(base + p) + '#t=0.1" muted preload="metadata"></video><span class="tp-vid">▶</span>'
           : '<img src="' + esc(base + p) + '" loading="lazy">';
-        return '<label class="tp-item' + (on ? " on" : "") + '">' +
-          '<input type="radio" name="__thumb" value="' + esc(p) + '"' + (on ? " checked" : "") + ">" + media + "</label>";
+        return '<div class="tp-item' + (on ? " on" : "") + '" data-path="' + esc(p) + '">' +
+          media +
+          '<div class="tp-ctl">' +
+            '<button type="button" class="tp-mv tp-l" title="앞으로 이동">◀</button>' +
+            '<label class="tp-pick"><input type="radio" name="__thumb" value="' + esc(p) + '"' + (on ? " checked" : "") + ">대표</label>" +
+            '<button type="button" class="tp-mv tp-r" title="뒤로 이동">▶</button>' +
+          "</div>" +
+        "</div>";
       }).join("");
-      return '<label class="am-field">' + lab + '<div class="am-thumbpick">' + items + "</div></label>";
+      return '<label class="am-field">' + lab +
+        '<div class="am-thumbpick" data-curthumb="' + esc(cur) + '">' + items + "</div></label>";
     }
     return '<label class="am-field">' + lab + '<input type="text" data-name="' + fd.name + '" value="' + esc(v) + '"></label>';
   }
@@ -738,13 +754,26 @@
     return uploadImage("assets/img/album/" + still, b64, "Album video first-frame thumbnail").then(function () { return still; });
   }
 
+  // 미디어 매니저의 현재 순서(경로 배열) 반환. 위젯 없으면 null.
+  function readMediaOrder() {
+    var tp = document.querySelector("#admForm .am-thumbpick");
+    if (!tp) return null;
+    var items = tp.querySelectorAll(".tp-item[data-path]");
+    if (!items.length) return null;
+    return Array.prototype.map.call(items, function (it) { return it.getAttribute("data-path"); });
+  }
+
   // 편집 시 선택한 썸네일 해석(영상이면 첫 프레임 캡처 still). 변경 없으면 undefined.
   function resolvePickedThumb(col, imgVals) {
     if (!col.auto || imgVals.image_files) return Promise.resolve(undefined);
+    var widget = document.querySelector('#admForm .am-thumbpick');
     var picked = document.querySelector('#admForm input[name="__thumb"]:checked');
     if (!picked) return Promise.resolve(undefined);
+    var cur = widget ? (widget.getAttribute("data-curthumb") || "") : "";
     var pv = picked.value;
-    if (!isVid(pv)) return Promise.resolve(pv);
+    if (!isVid(pv)) return Promise.resolve(pv === cur ? undefined : pv);
+    var still = pv.replace(/\.[^.]+$/, "") + "-thumb.jpg";
+    if (cur === still) return Promise.resolve(undefined); // 이미 캡처된 영상 썸네일
     return captureFrame("assets/img/album/" + pv).then(function (b64) {
       return b64 ? uploadVideoStill(b64, pv) : pv;
     });
@@ -778,6 +807,11 @@
         row[fd.name] = formVal(fd.name);
       });
       Object.keys(imgVals).forEach(function (k) { row[k] = imgVals[k]; });
+      // 앨범: 새 업로드가 없으면 미디어 매니저의 순서를 반영
+      if (col.auto && !imgVals.image_files) {
+        var ordered = readMediaOrder();
+        if (ordered && ordered.length) row.image_files = ordered.join("|");
+      }
       // 출판물 제목은 Title Case 규칙 자동 적용
       if (col.isPub && row.title && global.TitleCase) row.title = global.TitleCase(row.title);
 

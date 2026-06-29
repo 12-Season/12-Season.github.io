@@ -739,16 +739,27 @@ html[lang="en"] .lt-opt:last-child { color: var(--header-active-fg); opacity: 1;
 /* admin 썸네일 선택기 */
 .am-thumbpick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .tp-item {
-  position: relative; width: 88px; height: 66px; border: 2px solid transparent;
-  border-radius: 8px; overflow: hidden; cursor: pointer; background: #000;
+  position: relative; width: 92px; height: 86px; border: 2px solid transparent;
+  border-radius: 8px; overflow: hidden; background: #000;
 }
 .tp-item img, .tp-item video { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tp-item input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
 .tp-item.on { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent); }
 .tp-vid {
-  position: absolute; right: 4px; bottom: 4px; font-size: .68rem; color: #fff;
+  position: absolute; right: 4px; top: 4px; font-size: .68rem; color: #fff;
   background: rgba(0,0,0,.6); border-radius: 3px; padding: 0 4px; pointer-events: none;
 }
+/* 하단 컨트롤 바: ◀ 대표 ▶ */
+.tp-ctl {
+  position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: center;
+  justify-content: space-between; gap: 2px; background: rgba(0,0,0,.6); padding: 2px 3px;
+}
+.tp-mv {
+  border: 0; background: rgba(255,255,255,.2); color: #fff; cursor: pointer;
+  border-radius: 3px; font-size: .7rem; line-height: 1; padding: 3px 5px;
+}
+.tp-mv:hover { background: rgba(255,255,255,.4); }
+.tp-pick { display: flex; align-items: center; gap: 2px; color: #fff; font-size: .62rem; cursor: pointer; white-space: nowrap; }
+.tp-item .tp-pick input { position: static; opacity: 1; width: auto; height: auto; margin: 0; pointer-events: auto; }
 /* 여러 장인 앨범: 뒤에 사진이 쌓인 "뭉탱이" 느낌 */
 .lb-figure.is-stack .lb-img {
   box-shadow:
