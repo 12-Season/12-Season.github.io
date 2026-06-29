@@ -17,13 +17,13 @@
   <meta name="twitter:title" content="LIT @ KAIST" />
   <meta name="twitter:description" content="KAIST 정보전송연구실(LIT) — 6G·ISAC·MIMO·심층강화학습 연구" />
   <meta name="twitter:image" content="https://lit.kaist.ac.kr/assets/og.jpg?v=1" />
-  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20260623r" />
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260623r" />
+  <link rel="icon" type="image/png" href="assets/favicon-256.png?v=20260623s" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=20260623s" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" />
-  <link rel="stylesheet" href="assets/css/style.css?v=20260623r" />
-  <script src="assets/js/theme.js?v=20260623r"></script>
+  <link rel="stylesheet" href="assets/css/style.css?v=20260623s" />
+  <script src="assets/js/theme.js?v=20260623s"></script>
   <style>
     /* 스크롤 스냅: 한 화면씩 집중 */
     html { scroll-snap-type: y mandatory; scroll-padding-top: 0; }  /* 한 번 스크롤 = 한 칸 */
@@ -104,7 +104,7 @@
 </head>
 <body>
   <header class="site-header"><div class="wrap">
-    <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20260623r" alt="LIT"></a>
+    <a class="brand" href="index.html"><img class="brand-logo" src="assets/lit-logo.png?v=20260623s" alt="LIT"></a>
     <nav class="nav">
       <a href="index.html" class="active">Home</a>
       <a href="about.html">About</a>
@@ -150,7 +150,7 @@
     </nav>
   </div></header>
 
-  <img class="v3-toplogo" src="assets/lit-logo.png?v=20260623r" alt="LIT — Laboratory for Information Transmission">
+  <img class="v3-toplogo" src="assets/lit-logo.png?v=20260623s" alt="LIT — Laboratory for Information Transmission">
   <div class="v3-toplang"><button class="lang-toggle" type="button" data-lang-toggle aria-label="Switch to English"><svg class="lt-globe" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.6 2.8 2.6 15.2 0 18M12 3c-2.6 2.8-2.6 15.2 0 18"></path></svg><span class="lt-switch"><span class="lt-opt">KO</span><span class="lt-opt">EN</span><span class="lt-knob" aria-hidden="true"></span></span></button></div>
 
   <!-- 히어로 -->
@@ -228,9 +228,9 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-  <script src="assets/js/globe-land.js?v=20260623r"></script>
-  <script src="assets/js/pubs.js?v=20260623r"></script>
-  <script src="assets/js/i18n.js?v=20260623r"></script>
+  <script src="assets/js/globe-land.js?v=20260623s"></script>
+  <script src="assets/js/pubs.js?v=20260623s"></script>
+  <script src="assets/js/i18n.js?v=20260623s"></script>
   <script>
   /* 풀페이지: 휠/키/링크로 한 칸씩 천천히(1.3s) 이동 — 인덱스 상태로 제어해 흔들림 없음 */
   (function(){
@@ -292,10 +292,29 @@
     function load(){
       if(!window.Pubs){ init(FALLBACK); return; }
       fetch('data/album.csv',{cache:'no-store'}).then(function(r){return r.ok?r.text():'';}).then(function(t){
-        var items=[];
-        if(t){ Pubs._rowsToObjects(Pubs._parseCSV(t)).forEach(function(r){
-          if((r.thumbnail_file||'').trim() && (r.status||'')!=='draft') items.push({src:'assets/img/album/'+r.thumbnail_file.trim(),alt:r.title||''}); }); }
-        init((items.length?items:FALLBACK).slice(0,7));
+        if(!t){ init(FALLBACK); return; }
+        var rows=Pubs._rowsToObjects(Pubs._parseCSV(t));
+        var Y=new Date().getFullYear();
+        function isImg(p){ return p && !/\.(mp4|webm|mov|m4v)$/i.test(p); }
+        function imgsOf(r){ return (r.image_files||'').split('|').map(function(s){return s.trim();}).filter(isImg); }
+        function shuffle(a){ for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var x=a[i];a[i]=a[j];a[j]=x;} return a; }
+        function pick(years){ return rows.filter(function(r){ var y=parseInt((r.year||'').trim(),10);
+          return (r.status||'')!=='draft' && imgsOf(r).length && (!years || years.indexOf(y)>=0); }); }
+        // 작년~올해 우선, 부족하면 이전 연도까지 보충
+        var albums=pick([Y,Y-1]);
+        if(albums.length<5){ pick([Y-2,Y-3]).forEach(function(r){ if(albums.indexOf(r)<0) albums.push(r); }); }
+        if(!albums.length){ init(FALLBACK); return; }
+        shuffle(albums);
+        var items=[], used={};
+        // 1차: 앨범마다 랜덤 1장 → 행사 다양성 확보
+        albums.forEach(function(r){ if(items.length>=7) return;
+          var p=shuffle(imgsOf(r))[0], src='assets/img/album/'+p;
+          if(p && !used[src]){ used[src]=1; items.push({src:src,alt:r.title||''}); } });
+        // 2차: 7장 미달이면 남은 사진들로 랜덤 보충
+        if(items.length<7){ var extra=[];
+          albums.forEach(function(r){ imgsOf(r).forEach(function(p){ var src='assets/img/album/'+p; if(!used[src]) extra.push({src:src,alt:r.title||''}); }); });
+          shuffle(extra); while(items.length<7 && extra.length){ var e=extra.shift(); used[e.src]=1; items.push(e); } }
+        init(items.length?items:FALLBACK);
       }).catch(function(){ init(FALLBACK); });
     }
     load();
